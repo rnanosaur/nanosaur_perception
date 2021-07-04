@@ -61,6 +61,6 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        repository: nanosaur/nanosaur
+        repository: nanosaur/nanosaur_base
         short-description: ${{ github.event.repository.description }}
         readme-filepath: ./README.md
