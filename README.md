@@ -6,12 +6,11 @@
 
 NanoSaur is a little tracked robot ROS2 enabled, made for an NVIDIA Jetson Nano
 
-* Website: [nanosaur.ai](https://nanosaur.ai)
-* Do you need an help? [Discord](https://discord.gg/NSrC52P5mw)
-* For technical details follow [wiki](https://github.com/rnanosaur/nanosaur/wiki)
-* Something wrong? Open an [issue](https://github.com/rnanosaur/nanosaur/issues)
-
-[Nanosaur Docker hub](https://hub.docker.com/u/nanosaur)
+* :sauropod: Website: [nanosaur.ai](https://nanosaur.ai)
+* :unicorn: Do you need an help? [Discord](https://discord.gg/NSrC52P5mw)
+* :toolbox: For technical details follow [wiki](https://github.com/rnanosaur/nanosaur/wiki)
+* :whale2: Nanosaur [Docker hub](https://hub.docker.com/u/nanosaur)
+* :interrobang: Something wrong? Open an [issue](https://github.com/rnanosaur/nanosaur/issues)
 
 # Usage
 
