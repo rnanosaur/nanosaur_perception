@@ -25,19 +25,16 @@
 
 # https://github.com/dusty-nv/jetson-containers
 
+ARG CUDA=10.2
+ARG RELEASE=r32.5
+
 FROM dustynv/ros:foxy-ros-base-l4t-r32.5.0
 
 ENV ROS_DISTRO=foxy
 ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
 
-ENV ROS_WS /opt/ros_ws
-RUN mkdir -p $ROS_WS/src
-
 # Install CUDA
 # https://gitlab.com/nvidia/container-images/l4t-base/-/blob/master/Dockerfile.cuda
-ARG CUDA=10.2
-ARG RELEASE=r32.5
-
 RUN apt-get update && apt-get install -y --no-install-recommends gnupg2 ca-certificates
 # COPY jetson-ota-public.key /etc/jetson-ota-public.key
 RUN curl https://gitlab.com/nvidia/container-images/l4t-base/-/raw/master/jetson-ota-public.key -o /etc/jetson-ota-public.key

@@ -2,7 +2,12 @@ name: Docker Builder CI
 
 # Reference:
 # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#on
-on: [push, pull_request]
+# https://jasonet.co/posts/scheduled-actions/
+on:
+  push
+  pull_request
+  schedule:
+  - cron: "0 0 * * 1" # Every Monday at the end of the day
 
 # https://github.com/docker/build-push-action
 jobs:
