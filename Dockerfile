@@ -32,7 +32,7 @@ FROM nvcr.io/nvidia/l4t-base:r32.5.0 as build
 ARG CUDA=10.2
 ARG RELEASE=r32.5
 
-RUN apt-get update && apt-get install -y --no-install-recommends gnupg2 ca-certificates
+RUN apt-get update && apt-get install -y --no-install-recommends gnupg2 ca-certificates curl
 # COPY jetson-ota-public.key /etc/jetson-ota-public.key
 RUN curl https://gitlab.com/nvidia/container-images/l4t-base/-/raw/master/jetson-ota-public.key -o /etc/jetson-ota-public.key
 RUN apt-key add /etc/jetson-ota-public.key
