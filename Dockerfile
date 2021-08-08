@@ -25,10 +25,7 @@
 
 # https://github.com/dusty-nv/jetson-containers
 
-FROM dustynv/ros:foxy-ros-base-l4t-r32.5.0
-
-ENV ROS_DISTRO=foxy
-ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+FROM nvcr.io/nvidia/l4t-base:r32.5.0 as build
 
 # Install CUDA
 # https://gitlab.com/nvidia/container-images/l4t-base/-/blob/master/Dockerfile.cuda
@@ -54,6 +51,9 @@ RUN CUDAPKG=$(echo $CUDA | sed 's/\./-/'); \
 
 ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
 
+ENV ROS_DISTRO=foxy
+ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
+
 # Install gstream libraries
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-utils && \
@@ -65,14 +65,22 @@ RUN cd /opt && \
     git clone https://github.com/dusty-nv/jetson-utils.git && \
     mkdir -p jetson-utils/build && cd jetson-utils/build && \
     cmake ../ && \
-    make -j$(nproc) && \
+    make -j$(nproc) 
+
+FROM dustynv/ros:foxy-ros-base-l4t-r32.5.0
+
+# Install gstream libraries
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends apt-utils && \
+    apt-get install -y libglew-dev glew-utils libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev libglib2.0-dev && \
+    rm -rf /var/lib/apt/lists/*
+# Import from build stage all builded image
+COPY --from=build /opt/jetson-utils /opt/jetson-utils
+
+# Install jetson-utils
+RUN cd /opt/jetson-utils/build && \
     make install && \
     ldconfig
-    
-RUN sed -i \
-    's/ros_env_setup="\/opt\/ros\/$ROS_DISTRO\/setup.bash"/ros_env_setup="${ROS_ROOT}\/install\/setup.bash"/g' \
-    /ros_entrypoint.sh && \
-    cat /ros_entrypoint.sh
- 
-ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["bash"]
+
+RUN ls /opt
