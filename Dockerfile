@@ -54,9 +54,6 @@ RUN CUDAPKG=$(echo $CUDA | sed 's/\./-/'); \
 
 ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
 
-ENV ROS_DISTRO=foxy
-ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
-
 # Install gstream libraries
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-utils && \
@@ -71,6 +68,8 @@ RUN cd /opt && \
     make -j$(nproc) 
 
 FROM dustynv/ros:foxy-ros-base-l4t-r32.5.0
+
+ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
 
 # Install gstream libraries
 RUN apt-get update && \
