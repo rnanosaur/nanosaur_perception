@@ -25,7 +25,10 @@
 
 # https://github.com/dusty-nv/jetson-containers
 
-FROM nvcr.io/nvidia/l4t-base:r32.5.0 as build
+# https://ngc.nvidia.com/catalog/containers/nvidia:l4t-pytorch/tags
+# nvcr.io/nvidia/l4t-base:r32.5.0
+
+FROM nvcr.io/nvidia/l4t-pytorch:r32.5.0-pth1.7-py3 as build
 
 # Install CUDA
 # https://gitlab.com/nvidia/container-images/l4t-base/-/blob/master/Dockerfile.cuda
