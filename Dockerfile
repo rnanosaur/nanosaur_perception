@@ -58,7 +58,7 @@ ENV ROS_ROOT=/opt/ros/${ROS_DISTRO}
 RUN apt-get update && \
     apt-get install -y --no-install-recommends apt-utils && \
     apt-get install -y libglew-dev glew-utils libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev libglib2.0-dev && \
+    libgstreamer-plugins-base1.0-dev libglib2.0-dev git && \
     rm -rf /var/lib/apt/lists/*
 # Install jetson-utils
 RUN cd /opt && \
