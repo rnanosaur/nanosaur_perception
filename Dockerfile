@@ -23,66 +23,60 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# https://github.com/dusty-nv/jetson-containers
+# Jetpack 4.6
+FROM dustynv/ros:foxy-ros-base-l4t-r32.6.1
 
-# https://ngc.nvidia.com/catalog/containers/nvidia:l4t-pytorch/tags
-# nvcr.io/nvidia/l4t-base:r32.5.0
+# Disable terminal interaction for apt
+ENV DEBIAN_FRONTEND=noninteractive
 
-FROM nvcr.io/nvidia/l4t-pytorch:r32.5.0-pth1.7-py3 as build
+# Install Git-LFS
+RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
+        apt-get update && apt-get install -y \
+        git-lfs \
+&& rm -rf /var/lib/apt/lists/*
 
-# Install CUDA
-# https://gitlab.com/nvidia/container-images/l4t-base/-/blob/master/Dockerfile.cuda
-ARG CUDA=10.2
-ARG RELEASE=r32.5
+COPY scripts/cuda_info.txt cuda_info.txt
+RUN echo "$(cat cuda_info.txt)" >> /var/lib/dpkg/status
 
-RUN apt-get update && apt-get install -y --no-install-recommends gnupg2 ca-certificates curl
-# COPY jetson-ota-public.key /etc/jetson-ota-public.key
-RUN curl https://gitlab.com/nvidia/container-images/l4t-base/-/raw/master/jetson-ota-public.key -o /etc/jetson-ota-public.key
-RUN apt-key add /etc/jetson-ota-public.key
-RUN echo "deb https://repo.download.nvidia.com/jetson/common $RELEASE main" >> /etc/apt/sources.list
+# Add nvidia repo/public key and install VPI libraries
+RUN curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc \
+    && echo "deb https://repo.download.nvidia.com/jetson/common r32.6 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list \
+    && echo "deb https://repo.download.nvidia.com/jetson/t194 r32.6 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list \
+    && apt-get update \
+    && apt-get install -y \
+        libnvvpi1 \
+        vpi1-dev
 
-RUN CUDAPKG=$(echo $CUDA | sed 's/\./-/'); \
-    apt-get update && apt-get install -y --no-install-recommends \
-	cuda-libraries-$CUDAPKG \
-	cuda-nvtx-$CUDAPKG \
-	cuda-libraries-dev-$CUDAPKG \
-	cuda-minimal-build-$CUDAPKG \
-	cuda-license-$CUDAPKG \
-	cuda-command-line-tools-$CUDAPKG && \
-	ln -s /usr/local/cuda-$CUDA /usr/local/cuda && \
-	rm -rf /var/lib/apt/lists/*
+# Update environment
+ENV LD_LIBRARY_PATH="/opt/nvidia/vpi1/lib64:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/cuda-10.2/targets/aarch64-linux/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra-egl:${LD_LIBRARY_PATH}"
 
-ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
+########### INSTALL ISAAC ROS ###########
 
-# Install gstream libraries
+# Download and build nanosaur_isaac_ros
+ENV ISAAC_ROS_WS /opt/isaac_ros_ws
+# Copy wstool isaac_ros.rosinstall
+COPY isaac_ros.rosinstall isaac_ros.rosinstall
+
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends apt-utils && \
-    apt-get install -y libglew-dev glew-utils libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev libglib2.0-dev git build-essential cmake && \
+    apt-get install python3-vcstool python3-pip -y && \
+    mkdir -p ${ISAAC_ROS_WS}/src && \
+    vcs import ${ISAAC_ROS_WS}/src < isaac_ros.rosinstall && \
     rm -rf /var/lib/apt/lists/*
-# Install jetson-utils
-RUN cd /opt && \
-    git clone https://github.com/dusty-nv/jetson-utils.git && \
-    mkdir -p jetson-utils/build && cd jetson-utils/build && \
-    cmake ../ && \
-    make -j$(nproc) 
+# Pull LFS files
+RUN cd ${ISAAC_ROS_WS}/src/isaac_ros_common && git lfs pull
 
-FROM dustynv/ros:foxy-ros-base-l4t-r32.5.0
+RUN cd ${ISAAC_ROS_WS} && \
+    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+    colcon build --symlink-install \
+    --cmake-args \
+    -DCMAKE_BUILD_TYPE=Release
 
-ENV LIBRARY_PATH /usr/local/cuda/lib64/stubs
-
-# Install gstream libraries
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends apt-utils && \
-    apt-get install -y libglew-dev glew-utils libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev libglib2.0-dev && \
-    rm -rf /var/lib/apt/lists/*
-# Import from build stage all builded image
-COPY --from=build /opt/jetson-utils /opt/jetson-utils
-
-# Install jetson-utils
-RUN cd /opt/jetson-utils/build && \
-    make install && \
-    ldconfig
-
-RUN ls /opt
+# source ros package from entrypoint
+RUN sed --in-place --expression \
+      '$isource "$ISAAC_ROS_WS/install/setup.bash"' \
+      /ros_entrypoint.sh
+# run ros package launch file
+CMD ["ros2", "launch", "nanosaur_isaac_follower", "isaac_follower.launch.py"]

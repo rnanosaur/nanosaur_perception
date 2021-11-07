@@ -1,8 +1,8 @@
-# :sauropod: nanosaur_base
+# :sauropod: nanosaur_perception
 
 🐋 Base docker for nanosaur 
 
-[![Docker Builder CI](https://github.com/rnanosaur/nanosaur_base/actions/workflows/docker-build.yml/badge.svg)](https://github.com/rnanosaur/nanosaur_base/actions/workflows/docker-build.yml)
+[![Docker Builder CI](https://github.com/rnanosaur/nanosaur_perception/actions/workflows/docker-build.yml/badge.svg)](https://github.com/rnanosaur/nanosaur_perception/actions/workflows/docker-build.yml)
 
 NanoSaur is a little tracked robot ROS2 enabled, made for an NVIDIA Jetson Nano
 
@@ -14,8 +14,8 @@ NanoSaur is a little tracked robot ROS2 enabled, made for an NVIDIA Jetson Nano
 
 # Usage
 
-Docker hub [Nanosar Base](https://hub.docker.com/repository/docker/nanosaur/nanosaur_base)
+Docker hub [Nanosar Perception](https://hub.docker.com/repository/docker/nanosaur/nanosaur_perception)
 
 ```
-docker pull nanosaur/nanosaur_base:latest
+docker pull nanosaur/perception:latest
 ```
