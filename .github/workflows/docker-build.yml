@@ -38,8 +38,9 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build and push
       run: |
-        docker build -t nanosaur/perception .
-
+        BRANCH_NAME={{ steps.extract_branch.outputs.branch }}
+        echo "branch name: $BRANCH_NAME"
+        docker build --no-cache -t nanosaur/perception:{{ steps.extract_branch.outputs.branch }} . --push
     - name: Docker Image digest
       run: |
         echo ${{ steps.docker_build.outputs.digest }}
