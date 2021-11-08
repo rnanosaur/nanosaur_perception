@@ -17,6 +17,10 @@ jobs:
     name: "Build Docker image develop"
     runs-on: self-hosted
     steps:
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
     - name: Checkout
       uses: actions/checkout@v2.4.0
     # https://github.com/docker/build-push-action/blob/master/docs/advanced/tags-labels.md
@@ -38,7 +42,8 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Build and push
       run: |
-        BRANCH_NAME="##[set-output name=branch;]${GITHUB_REF#refs/heads/}"
+        echo $${{ steps.docker_meta.outputs.labels }}
+        BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
         echo "branch name: $BRANCH_NAME"
         docker build --no-cache -t nanosaur/perception:$BRANCH_NAME . --push
     - name: Docker Image digest
