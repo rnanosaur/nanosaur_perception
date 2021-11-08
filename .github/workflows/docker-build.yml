@@ -30,14 +30,16 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Build and push
+    - name: Build
+      id: docker_build
       run: |
         BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
         echo "branch name: $BRANCH_NAME"
-        docker build --no-cache -t nanosaur/perception:$BRANCH_NAME . --push
-    - name: Docker Image digest
+        docker build --no-cache -t nanosaur/perception:$BRANCH_NAME .
+    - name: Push
+      id: docker_push
       run: |
-        echo ${{ steps.docker_build.outputs.digest }}
+        docker image push nanosaur/perception:$BRANCH_NAME
         
   # https://github.com/peter-evans/dockerhub-description
   update_docker_description:
