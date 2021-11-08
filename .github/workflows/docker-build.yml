@@ -36,17 +36,10 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - uses: docker/setup-buildx-action@v1
-      id: buildx
-      with:
-        install: true
     - name: Build and push
-      id: docker_build
-      uses: docker/build-push-action@v2.7.0
-      with:
-        push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
+      run: |
+        docker build -t nanosaur/perception .
+
     - name: Docker Image digest
       run: |
         echo ${{ steps.docker_build.outputs.digest }}
