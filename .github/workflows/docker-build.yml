@@ -1,60 +1,36 @@
 name: Docker Builder CI
 
-# Reference:
-# https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#on
-# https://jasonet.co/posts/scheduled-actions/
 on:
   push:
   pull_request:
-  schedule:
-  - cron: "0 0 * * 1" # Every Monday at the end of the day
 
-# https://github.com/docker/build-push-action
 jobs:
 
-  # https://github.com/docker/build-push-action/issues/225
   docker:
     name: "Build Docker image develop"
     runs-on: self-hosted
     steps:
-    - name: Extract branch name
-      shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-      id: extract_branch
-    - name: Checkout
-      uses: actions/checkout@v2.4.0
-    # https://github.com/docker/build-push-action/blob/master/docs/advanced/tags-labels.md
-    - name: Login to DockerHub
-      if: github.event_name != 'pull_request'
-      uses: docker/login-action@v1.10.0 
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Build
-      id: docker_build
-      run: |
-        BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
-        echo "branch name: $BRANCH_NAME"
-        docker build --no-cache -t nanosaur/perception:$BRANCH_NAME .
-    - name: Push
-      id: docker_push
-      run: |
-        docker image push nanosaur/perception:$BRANCH_NAME
-        
-  # https://github.com/peter-evans/dockerhub-description
-  update_docker_description:
-    name: Update docker description
-    if: startsWith(github.ref, 'refs/tags/')
-    runs-on: ubuntu-latest
-    needs: [docker]
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v2.4.0
-    - name: Docker Hub Description
-      uses: peter-evans/dockerhub-description@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        repository: nanosaur/nanosaur_base
-        short-description: ${{ github.event.repository.description }}
-        readme-filepath: ./README.md
+      - name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1.10.0 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # https://github.com/docker/build-push-action/blob/master/docs/advanced/tags-labels.md
+      - name: Docker meta
+        id: meta
+        uses: crazy-max/ghaction-docker-meta@v3.6.0
+        with:
+          images: nanosaur/perception
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=ref,event=branch
+            type=semver,pattern={{version}}
+            type=ref,event=tag
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2.7.0
+        with:
+          push: ${{ ! startsWith(github.ref, 'refs/pull/') }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
