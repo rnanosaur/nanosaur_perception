@@ -17,6 +17,9 @@ jobs:
       id: extract_branch
     - name: Checkout
       uses: actions/checkout@v2.4.0
+    - name: Docker info
+      shell: bash
+      run: docker info
     - name: Build Docker
       shell: bash
       id: docker_build
