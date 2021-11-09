@@ -32,17 +32,16 @@ ARG L4T=r32.6
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Fix cuda info
-COPY cuda_info.txt cuda_info.txt
-RUN echo "$(cat cuda_info.txt)" >> /var/lib/dpkg/status
 # Install Git-LFS
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-        apt-get update && apt-get install -y \
-        git-lfs \
-&& rm -rf /var/lib/apt/lists/*
+    apt-get update && apt-get install -y git-lfs && \
+    && rm -rf /var/lib/apt/lists/*
 
+# Fix cuda info
+COPY cuda_info.txt cuda_info.txt
 # Add nvidia repo/public key and install VPI libraries
-RUN curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc && \
+RUN echo "$(cat cuda_info.txt)" >> /var/lib/dpkg/status && \
+    curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc && \
     echo "deb https://repo.download.nvidia.com/jetson/common ${L4T} main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
     apt-get update && apt-get install -y libnvvpi1 vpi1-dev && \
     rm -rf /var/lib/apt/lists/*
