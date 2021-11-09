@@ -32,9 +32,9 @@ ARG L4T=r32.6
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Git-LFS
+# Install Git-LFS and other packages
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-    apt-get update && apt-get install -y git-lfs && \
+    apt-get update && apt-get install -y git-lfs software-properties-common && \
     rm -rf /var/lib/apt/lists/*
 
 # Fix cuda info
