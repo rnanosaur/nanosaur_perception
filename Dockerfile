@@ -25,6 +25,9 @@
 
 # Jetpack 4.6
 FROM dustynv/ros:foxy-ros-base-l4t-r32.6.1
+# Configuration CUDA
+ARG CUDA=10.2
+ARG L4T=r32.6
 
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -39,18 +42,15 @@ COPY scripts/cuda_info.txt cuda_info.txt
 RUN echo "$(cat cuda_info.txt)" >> /var/lib/dpkg/status
 
 # Add nvidia repo/public key and install VPI libraries
-RUN curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc \
-    && echo "deb https://repo.download.nvidia.com/jetson/common r32.6 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list \
-    && echo "deb https://repo.download.nvidia.com/jetson/t194 r32.6 main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list \
-    && apt-get update \
-    && apt-get install -y \
-        libnvvpi1 \
-        vpi1-dev
+RUN curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc && \
+    echo "deb https://repo.download.nvidia.com/jetson/common ${L4T} main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
+    apt-get update && apt-get install -y libnvvpi1 vpi1-dev && \
+    rm -rf /var/lib/apt/lists/*
 
 # Update environment
 ENV LD_LIBRARY_PATH="/opt/nvidia/vpi1/lib64:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/cuda-10.2/targets/aarch64-linux/lib:${LD_LIBRARY_PATH}"
+ENV LD_LIBRARY_PATH="/usr/local/cuda-${CUDA}/targets/aarch64-linux/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra-egl:${LD_LIBRARY_PATH}"
 
 ########### INSTALL ISAAC ROS ###########
@@ -68,8 +68,11 @@ RUN apt-get update && \
 # Pull LFS files
 RUN cd ${ISAAC_ROS_WS}/src/isaac_ros_common && git lfs pull
 
-RUN cd ${ISAAC_ROS_WS} && \
-    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+# Change workdir
+WORKDIR $ISAAC_ROS_WS
+
+# Build Isaac ROS
+RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     colcon build --symlink-install \
     --cmake-args \
     -DCMAKE_BUILD_TYPE=Release
@@ -78,5 +81,3 @@ RUN cd ${ISAAC_ROS_WS} && \
 RUN sed --in-place --expression \
       '$isource "$ISAAC_ROS_WS/install/setup.bash"' \
       /ros_entrypoint.sh
-# run ros package launch file
-CMD ["ros2", "launch", "nanosaur_isaac_follower", "isaac_follower.launch.py"]

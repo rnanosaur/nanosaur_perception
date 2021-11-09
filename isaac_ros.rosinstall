@@ -7,3 +7,6 @@
 - git:
     local-name: isaac_ros_apriltag
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_apriltag.git
+- git:
+    local-name: isaac_ros_argus_camera
+    uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_argus_camera.git

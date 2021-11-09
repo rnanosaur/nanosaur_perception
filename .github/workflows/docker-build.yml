@@ -17,7 +17,14 @@ jobs:
       id: extract_branch
     - name: Checkout
       uses: actions/checkout@v2.4.0
-    - name: Build
+    - name: Extract cuda info
+      shell: bash
+      run: |
+        echo "Run script"
+        ./scripts/build_cuda_info.sh
+        cat scripts/cuda.txt
+    - name: Build Docker
+      shell: bash
       id: docker_build
       run: |
         BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
@@ -28,7 +35,8 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Push
+    - name: Push Docker
+      shell: bash
       id: docker_push
       run: |
         BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
@@ -48,6 +56,18 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_PASSWORD }}
-        repository: nanosaur/nanosaur_base
+        repository: nanosaur/perception
         short-description: ${{ github.event.repository.description }}
         readme-filepath: ./README.md
+
+  notify:
+    name: "Notify socials"
+    needs: [update_docker_description]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Discord notification
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      uses: Ilshidur/action-discord@master
+      with:
+        args: 'The project **{{ EVENT_PAYLOAD.repository.full_name }}** has been deployed v${{ steps.meta.outputs.tags }}.'
