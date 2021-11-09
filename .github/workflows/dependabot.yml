@@ -19,20 +19,23 @@ jobs:
       id: extract_branch
     - name: Checkout
       uses: actions/checkout@v2.4.0
-    - name: Build
+    - name: Build Docker
+      shell: bash
       id: docker_build
       run: |
         BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
-        echo "branch name: $BRANCH_NAME"
+        echo "Run script build cuda libraries"
+        ./scripts/build_cuda_info.sh
+        echo "Build docker image with tag: nanosaur/perception:$BRANCH_NAME"
         docker build --no-cache -t nanosaur/perception:$BRANCH_NAME .
     - name: Login to DockerHub
       uses: docker/login-action@v1.10.0 
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Push
+    - name: Push Docker
+      shell: bash
       id: docker_push
-      if: github.event_name != 'pull_request'
       run: |
         BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
         docker image push nanosaur/perception:$BRANCH_NAME

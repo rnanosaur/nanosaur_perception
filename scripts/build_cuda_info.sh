@@ -31,7 +31,7 @@ function get_dpkg_status() {
     awk '/Package: '"$1"'/,/^$/' /var/lib/dpkg/status
 }
 
-CUDA_DATA=scripts/cuda.txt
+CUDA_DATA=cuda_info.txt
 
 # Build file
 touch $CUDA_DATA
