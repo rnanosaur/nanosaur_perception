@@ -27,7 +27,7 @@ jobs:
       id: docker_build
       run: |
         BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
-        bash nanosaur_perception/scripts/docker_builder.sh -ci --branch $BRANCH_NAME
+        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh -ci --branch $BRANCH_NAME
     - name: Login to DockerHub
       uses: docker/login-action@v1.10.0 
       with:
@@ -38,7 +38,7 @@ jobs:
       id: docker_push
       run: |
         BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
-        bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME
+        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME
     - name: Enable auto-merge for Dependabot PRs
       if: ${{contains(steps.metadata.outputs.dependency-names, 'my-dependency') && steps.metadata.outputs.update-type == 'version-update:semver-patch'}}
       run: gh pr merge --auto --merge "$PR_URL"
