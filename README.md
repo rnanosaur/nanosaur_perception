@@ -21,10 +21,20 @@ Docker hub [nanosar Perception](https://hub.docker.com/repository/docker/nanosau
 docker pull nanosaur/perception:latest
 ```
 
-# Build on Jetson device
+# Develop
+
+## Build on Jetson device
 
 Run this script to setup the enviroment
 
 ```
 . nanosaur_perception/scripts/docker_builder.sh
+```
+
+## Run in test mode
+
+Run docker passing test repository 
+
+```
+docker run -it --rm --network host -v ${HOME}/nanosaur_perception:/opt/ros_ws/src/nanosaur_perception -v /tmp/argus_socket:/tmp/argus_socket nanosaur/perception:main bash
 ```

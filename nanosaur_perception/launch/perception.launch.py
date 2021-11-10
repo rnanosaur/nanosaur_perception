@@ -24,8 +24,42 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from launch import LaunchDescription
+from launch_ros.actions import ComposableNodeContainer, Node
+from launch_ros.descriptions import ComposableNode
 
 def generate_launch_description():
-    launcher = []
-    return LaunchDescription(launcher)
+
+    rectify_node = ComposableNode(
+        package='isaac_ros_image_proc',
+        plugin='isaac_ros::image_proc::RectifyNode',
+        name='rectify_node',
+    )
+
+    rectify_container = ComposableNodeContainer(
+        name='rectify_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        composable_node_descriptions=[rectify_node],
+        output='screen'
+    )
+
+    apriltag_exe = Node(
+        package='isaac_ros_apriltag',
+        executable='isaac_ros_apriltag',
+        name='apriltag_exe',
+    )
+
+    argus = Node(
+        package='isaac_ros_argus_camera_mono',
+        executable='isaac_ros_argus_camera_mono',
+        name='isaac_ros_argus_camera_mono',
+        parameters=[{
+            'device': 0,
+            'sensor': 5,
+            'output_encoding': 'rgb8'
+            }],
+        remappings=[('/image_raw', '/image'),]
+        )
+    return LaunchDescription([rectify_container, argus, apriltag_exe])
 # EOF
