@@ -48,8 +48,11 @@ usage()
     echo "nanosaur perception docker builder" >&2
     echo "" >&2
     echo "Commands:" >&2
-    echo "  $name info                  Status" >&2
-
+    echo "  -v                      |  Verbose. Schow extra info " >&2
+    echo "  -ci                     |  Build docker without cache " >&2
+    echo "  --push                  |  Push docker. Need to be logged in " >&2
+    echo "  --repo REPO_NAME        |  Set repository to push " >&2
+    echo "  --branch BRANCH_DISTRO  |  Set tag from branch " >&2
 }
 
 main()
@@ -98,6 +101,9 @@ main()
             shift 1
     done
 
+    # Build tag
+    local TAG="$BRANCH_DISTRO"
+
     if ! $PUSH ; then
         echo "- Extract Libraries info"
         local DPKG_STATUS=$(get_dpkg_status cuda-cudart-10-2)$(get_dpkg_status libcufft-10-2)
@@ -110,9 +116,6 @@ main()
         if $CI_BUILD ; then
             NO_CACHE="--no-cache"
         fi
-
-        # Build tag
-        local TAG="$BRANCH_DISTRO"
 
         echo "- Build repo ${green}$REPO_NAME:$TAG${reset}"
         docker build $NO_CACHE -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" .
