@@ -38,9 +38,9 @@ RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.d
     rm -rf /var/lib/apt/lists/*
 
 # Fix cuda info
-COPY cuda_info.txt cuda_info.txt
+ARG DPKG_STATUS
 # Add nvidia repo/public key and install VPI libraries
-RUN echo "$(cat cuda_info.txt)" >> /var/lib/dpkg/status && \
+RUN echo "$DPKG_STATUS" >> /var/lib/dpkg/status && \
     curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc && \
     echo "deb https://repo.download.nvidia.com/jetson/common ${L4T} main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
     apt-get update && apt-get install -y libnvvpi1 vpi1-dev && \
@@ -66,12 +66,12 @@ RUN apt-get update && \
         /usr/bin/g++-8 8 && \
     rm -rf /var/lib/apt/lists/*
 
-########### INSTALL ISAAC ROS ###########
+################ INSTALL ISAAC ROS ####################
 
 # Download and build nanosaur_isaac_ros
 ENV ISAAC_ROS_WS /opt/isaac_ros_ws
 # Copy wstool isaac_ros.rosinstall
-COPY isaac_ros.rosinstall isaac_ros.rosinstall
+COPY nanosaur_perception/rosinstall/isaac_ros.rosinstall isaac_ros.rosinstall
 
 RUN apt-get update && \
     apt-get install python3-vcstool python3-pip -y && \
@@ -90,7 +90,33 @@ RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     --cmake-args \
     -DCMAKE_BUILD_TYPE=Release
 
+################ NANOSAUR PKGS ####################
+
+# Download and build nanosaur_perception
+ENV ROS_WS /opt/ros_ws
+RUN mkdir -p ${ROS_WS}/src
+
+ADD . $ROS_WS/src/nanosaur_perception
+
+# Change workdir
+WORKDIR $ROS_WS
+
+# Build Isaac ROS
+RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+    . $ISAAC_ROS_WS/install/setup.sh && \
+    colcon build --symlink-install \
+    --cmake-args \
+    -DCMAKE_BUILD_TYPE=Release
+
+################ Final enviroment setup ####################
+
+ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+# https://docs.docker.com/engine/reference/builder/#stopsignal
+# https://hynek.me/articles/docker-signals/
+STOPSIGNAL SIGINT
 # source ros package from entrypoint
 RUN sed --in-place --expression \
-      '$isource "$ISAAC_ROS_WS/install/setup.bash"' \
+      '$isource "$ROS_WS/install/setup.bash"' \
       /ros_entrypoint.sh
+# run ros package launch file
+CMD ["ros2", "launch", "nanosaur_perception", "perception.launch.py"]

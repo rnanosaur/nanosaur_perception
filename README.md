@@ -20,3 +20,11 @@ Docker hub [nanosar Perception](https://hub.docker.com/repository/docker/nanosau
 ```
 docker pull nanosaur/perception:latest
 ```
+
+# Build on Jetson device
+
+Run this script to setup the enviroment
+
+```
+. nanosaur_perception/scripts/docker_builder.sh
+```

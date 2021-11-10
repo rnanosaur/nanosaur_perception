@@ -23,18 +23,9 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Get the entry in the dpkg status file corresponding to the provied package name
-# Prepend two newlines so it can be safely added to the end of any existing
-# dpkg/status file.
-function get_dpkg_status() {
-    echo -e "\n"
-    awk '/Package: '"$1"'/,/^$/' /var/lib/dpkg/status
-}
+from launch import LaunchDescription
 
-CUDA_DATA=cuda_info.txt
-
-# Build file
-touch $CUDA_DATA
-# Load info
-get_dpkg_status cuda-cudart-10-2 >> $CUDA_DATA
-get_dpkg_status libcufft-10-2 >> $CUDA_DATA
+def generate_launch_description():
+    launcher = []
+    return LaunchDescription(launcher)
+# EOF
