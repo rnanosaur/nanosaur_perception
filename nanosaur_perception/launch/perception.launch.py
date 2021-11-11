@@ -39,13 +39,6 @@ cfg_36h11 = {
 
 def generate_launch_description():
 
-    apriltag_exe = Node(
-        package='isaac_ros_apriltag',
-        executable='isaac_ros_apriltag',
-        name='apriltag_exe',
-        remappings=[('camera_info', 'resized/camera_info')]
-    )
-
     apriltag_node = ComposableNode(
         name='apriltag',
         package='isaac_ros_apriltag',
