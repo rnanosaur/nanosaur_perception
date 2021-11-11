@@ -11,7 +11,7 @@ find_package(ament_cmake REQUIRED)
 # Install
 ################################################################################
 install(
-  DIRECTORY launch 
+  DIRECTORY launch camera_info
   DESTINATION share/${PROJECT_NAME}
 )
 

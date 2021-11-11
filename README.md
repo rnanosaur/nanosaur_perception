@@ -36,5 +36,9 @@ Run this script to setup the enviroment
 Run docker passing test repository 
 
 ```
-docker run -it --rm --network host -v ${HOME}/nanosaur_perception:/opt/ros_ws/src/nanosaur_perception -v /tmp/argus_socket:/tmp/argus_socket nanosaur/perception:main bash
+docker run -it --rm --network host -v ${HOME}/nanosaur_perception:/opt/ros_ws/src/nanosaur_perception -v ${HOME}/isaac_ros_ws:/opt/isaac_ros_ws/src -v /tmp/argus_socket:/tmp/argus_socket nanosaur/perception:main bash
 ```
+
+colcon build --symlink-install --packages-select isaac_ros_argus_camera_mono
+
+ros2 launch nanosaur_perception perception.launch.py
