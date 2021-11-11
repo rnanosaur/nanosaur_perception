@@ -29,6 +29,14 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
 
+# detect all 36h11 tags
+cfg_36h11 = {
+    'image_transport': 'raw',
+    'family': '36h11',
+    'size': 0.162
+}
+
+
 def generate_launch_description():
 
     apriltag_exe = Node(
@@ -37,6 +45,14 @@ def generate_launch_description():
         name='apriltag_exe',
         remappings=[('camera_info', 'resized/camera_info')]
     )
+
+    apriltag_node = ComposableNode(
+        name='apriltag',
+        package='isaac_ros_apriltag',
+        plugin='isaac_ros::apriltag::AprilTagNode',
+        remappings=[('image', '/rectified/image'),
+                    ('camera_info', 'resized/camera_info')],
+        parameters=[cfg_36h11])
 
     resize_node = ComposableNode(
         name='isaac_ros_resize',
@@ -71,10 +87,11 @@ def generate_launch_description():
         executable='component_container',
         composable_node_descriptions=[
             resize_node,
-            rectify_node
+            rectify_node,
+            apriltag_node
         ],
         output='screen'
     )
     
-    return LaunchDescription([argus_camera_mono_container, argus_camera_mono_node, apriltag_exe])
+    return LaunchDescription([argus_camera_mono_container, argus_camera_mono_node])
 # EOF
