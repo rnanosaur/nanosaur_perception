@@ -28,40 +28,53 @@ from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
 
+
 def generate_launch_description():
-
-    rectify_node = ComposableNode(
-        package='isaac_ros_image_proc',
-        plugin='isaac_ros::image_proc::RectifyNode',
-        name='rectify_node',
-    )
-
-    rectify_container = ComposableNodeContainer(
-        name='rectify_container',
-        namespace='',
-        package='rclcpp_components',
-        executable='component_container',
-        composable_node_descriptions=[rectify_node],
-        output='screen'
-    )
 
     apriltag_exe = Node(
         package='isaac_ros_apriltag',
         executable='isaac_ros_apriltag',
         name='apriltag_exe',
+        remappings=[('camera_info', 'resized/camera_info')]
     )
 
-    argus = Node(
+    resize_node = ComposableNode(
+        name='isaac_ros_resize',
+        package='isaac_ros_image_proc',
+        plugin='isaac_ros::image_proc::ResizeNode',
+        parameters=[{
+            'scale_height': 0.25,
+            'scale_width': 0.25,
+        }],
+        remappings=[('image', 'image_color')])
+    
+    rectify_node = ComposableNode(
+        name='isaac_ros_rectify',
+        package='isaac_ros_image_proc',
+        plugin='isaac_ros::image_proc::RectifyNode',
+        remappings=[('image', 'resized/image'), ('camera_info', 'resized/camera_info')])
+    argus_camera_mono_node = Node(
         package='isaac_ros_argus_camera_mono',
         executable='isaac_ros_argus_camera_mono',
-        name='isaac_ros_argus_camera_mono',
         parameters=[{
-            'device': 0,
-            'sensor': 5,
-            'output_encoding': 'rgb8',
-            'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
-            }],
-        remappings=[('/image_raw', '/image'),]
-        )
-    return LaunchDescription([rectify_container, argus, apriltag_exe])
+                'sensor': 5,
+                'device': 0,
+                'output_encoding': 'rgb8',
+                'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
+        }],
+        remappings=[('image_raw', 'image_color')]
+    )
+    argus_camera_mono_container = ComposableNodeContainer(
+        name='argus_camera_mono_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container',
+        composable_node_descriptions=[
+            resize_node,
+            rectify_node
+        ],
+        output='screen'
+    )
+    
+    return LaunchDescription([argus_camera_mono_container, argus_camera_mono_node, apriltag_exe])
 # EOF

@@ -26,7 +26,7 @@
 version: "3.9"
 services:
   perception: # https://nanosaur.ai
-    image: nanosaur/perception:foxy
+    image: nanosaur/perception:main
     network_mode: ${DOCKER_NETWORK:-host}
     restart: always
     environment:
