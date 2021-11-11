@@ -63,5 +63,5 @@ def generate_launch_description():
             }],
         remappings=[('/image_raw', '/image'),]
         )
-    return LaunchDescription([argus])
+    return LaunchDescription([rectify_container, argus, apriltag_exe])
 # EOF

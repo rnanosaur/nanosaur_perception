@@ -18,7 +18,7 @@ Meet nanosaur:
 Docker hub [nanosar Perception](https://hub.docker.com/repository/docker/nanosaur/nanosaur_perception)
 
 ```
-docker pull nanosaur/perception:latest
+docker run -it --rm --network host -v /tmp/argus_socket:/tmp/argus_socket nanosaur/perception:main
 ```
 
 # Develop
@@ -39,6 +39,7 @@ Run docker passing test repository
 docker run -it --rm --network host -v ${HOME}/nanosaur_perception:/opt/ros_ws/src/nanosaur_perception -v ${HOME}/isaac_ros_ws:/opt/isaac_ros_ws/src -v /tmp/argus_socket:/tmp/argus_socket nanosaur/perception:main bash
 ```
 
+```
 colcon build --symlink-install --packages-select isaac_ros_argus_camera_mono
-
 ros2 launch nanosaur_perception perception.launch.py
+```
