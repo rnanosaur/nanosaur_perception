@@ -130,8 +130,9 @@ main()
     fi
 
     if $LATEST ; then
-        echo "- Push ${bold}latest${reset} $REPO_NAME:$TAG"
+        echo "- Tag & Push ${bold}latest${reset} release from $REPO_NAME:$TAG"
         docker tag $REPO_NAME:$TAG $REPO_NAME:latest
+        docker image push $REPO_NAME:latest
     fi
 }
 
