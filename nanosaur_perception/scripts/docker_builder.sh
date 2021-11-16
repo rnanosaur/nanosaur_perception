@@ -69,6 +69,7 @@ main()
     local REPO_NAME="nanosaur/perception"
     local CI_BUILD=false
     local BRANCH_DISTRO="foxy"
+    local LATEST=false
 	# Decode all information from startup
     while [ -n "$1" ]; do
         case "$1" in
@@ -88,6 +89,10 @@ main()
                 ;;
             --branch)
                 BRANCH_DISTRO=$2
+                shift 1
+                ;;
+            --latest)
+                LATEST=true
                 shift 1
                 ;;
             --push)
@@ -122,6 +127,11 @@ main()
     else
         echo "- Push repo ${green}$REPO_NAME:$TAG${reset}"
         docker image push $REPO_NAME:$TAG
+    fi
+
+    if $LATEST ; then
+        echo "- Push ${bold}latest${reset} $REPO_NAME:$TAG"
+        docker tag $REPO_NAME:$TAG $REPO_NAME:latest
     fi
 }
 
