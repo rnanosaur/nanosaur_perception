@@ -47,7 +47,7 @@ jobs:
       shell: bash
       run: |
         BRANCH_NAME=${{ steps.extract_tag.outputs.tag }}
-        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --latest
+        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME --latest
 
   make_release:
     name: Upload release
