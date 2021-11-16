@@ -80,12 +80,16 @@ jobs:
 
   notify:
     name: "Notify socials"
+    if: startsWith(github.ref, 'refs/tags/')
     needs: [docker]
     runs-on: ubuntu-latest
     steps:
+    - name: Get the version
+      id: get_version
+      run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
     - name: Discord notification
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       uses: Ilshidur/action-discord@master
       with:
-        args: 'The project **{{ EVENT_PAYLOAD.repository.full_name }}** has been deployed v${{ steps.meta.outputs.tags }}.'
+        args: 'The project **{{ EVENT_PAYLOAD.repository.full_name }}** has been deployed v${{ steps.get_version.outputs.VERSION }}.'
