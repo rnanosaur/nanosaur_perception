@@ -124,6 +124,11 @@ main()
 
         echo "- Build repo ${green}$REPO_NAME:$TAG${reset}"
         docker build $NO_CACHE -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" .
+
+        if $CI_BUILD ; then
+            echo "- ${bold}Prune${reset} old docker images"
+            docker image prune -f
+        fi
     else
         echo "- Push repo ${green}$REPO_NAME:$TAG${reset}"
         docker image push $REPO_NAME:$TAG
