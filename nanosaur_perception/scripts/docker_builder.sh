@@ -30,6 +30,7 @@ green=`tput setaf 2`
 yellow=`tput setaf 3`
 reset=`tput sgr0`
 
+BASE_IMAGE_DEFAULT="dustynv/ros:foxy-ros-base-l4t-r32.6.1"
 # Get the entry in the dpkg status file corresponding to the provied package name
 # Prepend two newlines so it can be safely added to the end of any existing
 # dpkg/status file.
@@ -51,8 +52,10 @@ usage()
     echo "  -v                      |  Verbose. Schow extra info " >&2
     echo "  -ci                     |  Build docker without cache " >&2
     echo "  --push                  |  Push docker. Need to be logged in " >&2
+    echo "  --latest                |  Tag and push latest release" >&2
     echo "  --repo REPO_NAME        |  Set repository to push " >&2
     echo "  --branch BRANCH_DISTRO  |  Set tag from branch " >&2
+    echo "  --base-image BASE_IMAGE |  Change base image to build. Default=${bold}$BASE_IMAGE_DEFAULT${reset}" >&2
 }
 
 main()
@@ -70,6 +73,8 @@ main()
     local CI_BUILD=false
     local BRANCH_DISTRO="foxy"
     local LATEST=false
+    # Base image
+    local BASE_IMAGE=$BASE_IMAGE_DEFAULT
 	# Decode all information from startup
     while [ -n "$1" ]; do
         case "$1" in
@@ -98,6 +103,10 @@ main()
             --push)
                 PUSH=true
                 ;;
+            --base-image)
+                BASE_IMAGE=$2
+                shift 1
+                ;;
             *)
                 usage "[ERROR] Unknown option: $1" >&2
                 exit 1
@@ -119,11 +128,15 @@ main()
 
         local NO_CACHE=""
         if $CI_BUILD ; then
+            # Set no-cache build
             NO_CACHE="--no-cache"
+            # check if pulled the latest image
+            echo "- ${bold}Pull${reset} latest docker base image $BASE_IMAGE"
+            docker pull $BASE_IMAGE
         fi
 
         echo "- Build repo ${green}$REPO_NAME:$TAG${reset}"
-        docker build $NO_CACHE -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" .
+        docker build $NO_CACHE -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" --build-arg "BASE_IMAGE=$BASE_IMAGE" .
 
         if $CI_BUILD ; then
             echo "- ${bold}Prune${reset} old docker images"

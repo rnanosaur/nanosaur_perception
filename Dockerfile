@@ -24,7 +24,9 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Jetpack 4.6
-FROM dustynv/ros:foxy-ros-base-l4t-r32.6.1
+# Docker file for aarch64 based Jetson device
+ARG BASE_IMAGE="dustynv/ros:foxy-ros-base-l4t-r32.6.1"
+FROM ${BASE_IMAGE}
 # Configuration CUDA
 ARG CUDA=10.2
 ARG L4T=r32.6
