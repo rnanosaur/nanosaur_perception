@@ -30,7 +30,6 @@ green=`tput setaf 2`
 yellow=`tput setaf 3`
 reset=`tput sgr0`
 
-BASE_IMAGE_DEFAULT="dustynv/ros:foxy-ros-base-l4t-r32.6.1"
 # Get the entry in the dpkg status file corresponding to the provied package name
 # Prepend two newlines so it can be safely added to the end of any existing
 # dpkg/status file.
@@ -74,7 +73,7 @@ main()
     local BRANCH_DISTRO="foxy"
     local LATEST=false
     # Base image
-    local BASE_IMAGE=$BASE_IMAGE_DEFAULT
+    local BASE_IMAGE=""
 	# Decode all information from startup
     while [ -n "$1" ]; do
         case "$1" in
@@ -133,8 +132,15 @@ main()
             CI_OPTIONS="--no-cache --pull"
         fi
 
+        # Change base image
+        local BASE_IMAGE_ARG=""
+        if [ ! -z "$BASE_IMAGE" ] ; then
+            echo "- ${yellow}Override base image with $BASE_IMAGE${reset}"
+            BASE_IMAGE_ARG="--build-arg BASE_IMAGE=$BASE_IMAGE"
+        fi
+
         echo "- Build repo ${green}$REPO_NAME:$TAG${reset}"
-        docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" --build-arg "BASE_IMAGE=$BASE_IMAGE" .
+        docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" $BASE_IMAGE_ARG .
 
         if $CI_BUILD ; then
             echo "- ${bold}Prune${reset} old docker images"
