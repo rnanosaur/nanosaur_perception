@@ -126,17 +126,15 @@ main()
             echo "$DPKG_STATUS"
         fi
 
-        local NO_CACHE=""
+        local CI_OPTIONS=""
         if $CI_BUILD ; then
-            # Set no-cache build
-            NO_CACHE="--no-cache"
-            # check if pulled the latest image
-            echo "- ${bold}Pull${reset} latest docker base image $BASE_IMAGE"
-            docker pull $BASE_IMAGE
+            # Set no-cache and pull before build
+            # https://newbedev.com/what-s-the-purpose-of-docker-build-pull
+            CI_OPTIONS="--no-cache --pull"
         fi
 
         echo "- Build repo ${green}$REPO_NAME:$TAG${reset}"
-        docker build $NO_CACHE -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" --build-arg "BASE_IMAGE=$BASE_IMAGE" .
+        docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" --build-arg "BASE_IMAGE=$BASE_IMAGE" .
 
         if $CI_BUILD ; then
             echo "- ${bold}Prune${reset} old docker images"
