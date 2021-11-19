@@ -2,7 +2,7 @@
 
  [![Docker Pulls](https://img.shields.io/docker/pulls/nanosaur/perception)](https://hub.docker.com/r/nanosaur/perception) [![Discord](https://img.shields.io/discord/797461428646707211)](https://discord.gg/YvxjxEFPkb) [![GitHub Org's stars](https://img.shields.io/github/stars/rnanosaur?style=social)](https://github.com/rnanosaur) [![Twitter Follow](https://img.shields.io/twitter/follow/raffaello86?style=social)](https://twitter.com/raffaello86)
 
-nanosaur is a little tracked robot ROS2 enabled, made for an NVIDIA Jetson
+nanosaur is a little tracked robot [ROS2](https://www.ros.org/) enabled, made for an [NVIDIA Jetson](https://developer.nvidia.com/buy-jetson)
 
 ![nanosaur](https://nanosaur.ai/assets/images/intro.jpg)
 
@@ -16,7 +16,7 @@ Meet nanosaur:
 
 # CI & CD
 
-**Latest** = ROS2 foxy at latest tag released
+**Latest** = ROS2 **_foxy_** at latest tag released
 
 | 🏗️ CI            | latest* | foxy | galactic |
 |:-------------:|:-------:|:----:|:--------:|
@@ -32,8 +32,7 @@ Meet nanosaur:
 
 # Build on Jetson device
 
-Run this script to setup the enviroment
-
+The command below, build and push (optional) a nanosaur perception docker image
 ```
 . nanosaur_perception/scripts/docker_builder.sh
 ```
