@@ -4,7 +4,7 @@
 
 nanosaur is a little tracked robot [ROS2](https://www.ros.org/) enabled, made for an [NVIDIA Jetson](https://developer.nvidia.com/buy-jetson)
 
-![nanosaur](https://nanosaur.ai/assets/images/intro.jpg)
+[![nanosaur](https://nanosaur.ai/assets/images/intro.jpg)](https://nanosaur.ai)
 
 Meet nanosaur:
 * 🦕 Website: [nanosaur.ai](https://nanosaur.ai)
