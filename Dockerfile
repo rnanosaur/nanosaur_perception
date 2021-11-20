@@ -25,7 +25,7 @@
 
 # Jetpack 4.6
 # Docker file for aarch64 based Jetson device
-ARG BASE_IMAGE="dustynv/ros:foxy-ros-base-l4t-r32.6.1"
+ARG BASE_IMAGE="dustynv/ros:galactic-ros-base-l4t-r32.6.1"
 FROM ${BASE_IMAGE}
 # Configuration CUDA
 ARG CUDA=10.2
