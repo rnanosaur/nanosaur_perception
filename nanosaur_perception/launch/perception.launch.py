@@ -23,7 +23,10 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os
+import yaml
 from launch import LaunchDescription
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
@@ -37,21 +40,40 @@ cfg_36h11 = {
 }
 
 
+def load_config(config):
+    if os.path.isfile(config):
+        
+        with open(config, "r") as stream:
+            try:
+                return yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+    return {}
+
+
 def generate_launch_description():
+    pkg_perception = FindPackageShare(package='nanosaur_perception').find('nanosaur_perception')
+    nanosaur_config = os.path.join(pkg_perception, 'param', 'nanosaur.yml')
+    nanosaur_dir = LaunchConfiguration('nanosaur_dir', default=nanosaur_config)
+
+    # Load nanosaur configuration and check if are included extra parameters
+    conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
+    # Load namespace
+    namespace = os.getenv("HOSTNAME") + "/" if conf.get("multirobot", False) else ""
 
     apriltag_node = ComposableNode(
         name='apriltag',
         package='isaac_ros_apriltag',
         plugin='isaac_ros::apriltag::AprilTagNode',
-        namespace='camera',
+        namespace=namespace + 'camera',
         remappings=[('camera/image_rect', 'image_rect'),
                     ('camera/camera_info', 'resized/camera_info'),
                     ('tf', '/tf'),
                     ('tag_detections', '/tag_detections')],
-        parameters=[cfg_36h11])
+        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [cfg_36h11])
 
     rectify_node = ComposableNode(
-        namespace='camera',
+        namespace=namespace + 'camera',
         name='isaac_ros_rectify',
         package='isaac_ros_image_proc',
         plugin='isaac_ros::image_proc::RectifyNode',
@@ -61,11 +83,11 @@ def generate_launch_description():
     )
 
     resize_node = ComposableNode(
-        namespace='camera',
+        namespace=namespace + 'camera',
         name='isaac_ros_resize',
         package='isaac_ros_image_proc',
         plugin='isaac_ros::image_proc::ResizeNode',
-        parameters=[{
+        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [{
             'scale_height': 0.25,
             'scale_width': 0.25,
         }],
@@ -75,8 +97,8 @@ def generate_launch_description():
     argus_camera_mono_node = Node(
         package='isaac_ros_argus_camera_mono',
         executable='isaac_ros_argus_camera_mono',
-        namespace='camera',
-        parameters=[{
+        namespace=namespace + 'camera',
+        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [{
                 'sensor': 5,
                 'device': 0,
                 'output_encoding': 'rgb8',
@@ -88,16 +110,18 @@ def generate_launch_description():
                     ('/camera_info', 'camera_info')
                     ]
     )
+    
+    nodes = [resize_node, rectify_node]
+    # apriltag node
+    if conf.get("apriltag", True):
+        nodes += [apriltag_node]
+    # Build Composable node container for intra communication
     argus_camera_mono_container = ComposableNodeContainer(
         name='argus_camera_mono_container',
-        namespace='camera',
+        namespace=namespace + 'camera',
         package='rclcpp_components',
         executable='component_container',
-        composable_node_descriptions=[
-            resize_node,
-            rectify_node,
-            apriltag_node
-        ],
+        composable_node_descriptions=nodes,
         output='screen'
     )
     
