@@ -34,78 +34,41 @@ ARG L4T=r32.6
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install Git-LFS and other packages
-RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-    apt-get update && apt-get install -y git-lfs software-properties-common && \
-    rm -rf /var/lib/apt/lists/*
-
-# Fix cuda info
-ARG DPKG_STATUS
-# Add nvidia repo/public key and install VPI libraries
-RUN echo "$DPKG_STATUS" >> /var/lib/dpkg/status && \
-    curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc && \
-    echo "deb https://repo.download.nvidia.com/jetson/common ${L4T} main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
-    apt-get update && apt-get install -y libnvvpi1 vpi1-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Update environment
-ENV LD_LIBRARY_PATH="/opt/nvidia/vpi1/lib64:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/cuda-${CUDA}/targets/aarch64-linux/lib:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra-egl:${LD_LIBRARY_PATH}"
-
-# Install gcc8 for cross-compiled binaries from Ubuntu 20.04
 RUN apt-get update && \
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    apt-get install -y gcc-8 g++-8 libstdc++6 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8 && \
-    rm -rf /usr/bin/aarch64-linux-gnu-gcc /usr/bin/aarch64-linux-gnu-g++ \
-        /usr/bin/aarch64-linux-gnu-g++-7 /usr/bin/aarch64-linux-gnu-gcc-7 && \
-    update-alternatives --install /usr/bin/aarch64-linux-gnu-gcc aarch64-linux-gnu-gcc \
-        /usr/bin/gcc-8 8 && \
-    update-alternatives --install /usr/bin/aarch64-linux-gnu-g++ aarch64-linux-gnu-g++ \
-        /usr/bin/g++-8 8 && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends \
+    apt-utils python3-vcstool python3-pip \
+    libglew-dev glew-utils libgstreamer1.0-dev \
+    libgstreamer-plugins-base1.0-dev libglib2.0-dev \
+    libjpeg-dev zlib1g-dev
 
-################ INSTALL ISAAC ROS ####################
-
-# Download and build nanosaur_isaac_ros
-ENV ISAAC_ROS_WS /opt/isaac_ros_ws
-# Copy wstool isaac_ros.rosinstall
-COPY nanosaur_perception/rosinstall/isaac_ros.rosinstall isaac_ros.rosinstall
-
-RUN apt-get update && \
-    apt-get install python3-vcstool python3-pip -y && \
-    mkdir -p ${ISAAC_ROS_WS}/src && \
-    vcs import ${ISAAC_ROS_WS}/src < isaac_ros.rosinstall && \
-    rm -rf /var/lib/apt/lists/*
-# Pull LFS files
-RUN cd ${ISAAC_ROS_WS}/src/isaac_ros_common && git lfs pull
-
-# Change workdir
-WORKDIR $ISAAC_ROS_WS
-
-# Build Isaac ROS
-RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    colcon build --symlink-install \
-    --cmake-args \
-    -DCMAKE_BUILD_TYPE=Release
+# Error with /usr/lib/aarch64-linux-gnu/tegra/libnvbuf_utils.so
+RUN git clone https://github.com/dusty-nv/jetson-utils.git /opt/jetson-utils && \
+    # Build jetson-utils
+    mkdir -p /opt/jetson-utils/build && \
+    cd /opt/jetson-utils && \
+    git checkout 43c04d6330c3410d9c5f63e311c9653dbbe4e192 && \
+    cd /opt/jetson-utils/build && \
+    cmake ../ && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig
 
 ################ NANOSAUR PKGS ####################
 
 # Download and build nanosaur_perception
 ENV ROS_WS /opt/ros_ws
-RUN mkdir -p ${ROS_WS}/src
+# Copy wstool isaac_ros.rosinstall
+COPY nanosaur_perception/rosinstall/perception.rosinstall perception.rosinstall
 
-ADD . $ROS_WS/src/nanosaur_perception
+RUN mkdir -p ${ROS_WS}/src && \
+    vcs import ${ROS_WS}/src < perception.rosinstall && \
+    rm -rf /var/lib/apt/lists/*
 
 # Change workdir
 WORKDIR $ROS_WS
 
 # Build Isaac ROS
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    . $ISAAC_ROS_WS/install/setup.sh && \
     colcon build --symlink-install \
     --cmake-args \
     -DCMAKE_BUILD_TYPE=Release

@@ -23,83 +23,54 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import os
+import yaml
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 from launch import LaunchDescription
-from launch_ros.actions import ComposableNodeContainer, Node
-from launch_ros.descriptions import ComposableNode
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 
-# detect all 36h11 tags
-cfg_36h11 = {
-    'image_transport': 'raw',
-    'family': '36h11',
-    'size': 0.162
-}
+def load_config(config):
+    if os.path.isfile(config):
+        
+        with open(config, "r") as stream:
+            try:
+                return yaml.safe_load(stream)
+            except yaml.YAMLError as exc:
+                print(exc)
+    return {}
 
 
 def generate_launch_description():
 
-    apriltag_node = ComposableNode(
-        name='apriltag',
-        package='isaac_ros_apriltag',
-        plugin='isaac_ros::apriltag::AprilTagNode',
-        namespace='camera',
-        remappings=[('camera/image_rect', 'image_rect'),
-                    ('camera/camera_info', 'resized/camera_info'),
-                    ('tf', '/tf'),
-                    ('tag_detections', '/tag_detections')],
-        parameters=[cfg_36h11])
+    pkg_bringup = FindPackageShare(package='nanosaur_bringup').find('nanosaur_bringup')
 
-    rectify_node = ComposableNode(
-        namespace='camera',
-        name='isaac_ros_rectify',
-        package='isaac_ros_image_proc',
-        plugin='isaac_ros::image_proc::RectifyNode',
-        remappings=[('image', 'resized/image'),
-                    ('camera_info', 'resized/camera_info'),
-                    ]
-    )
+    nanosaur_config = os.path.join(pkg_bringup, 'param', 'nanosaur.yml')
+    nanosaur_dir = LaunchConfiguration('nanosaur_dir', default=nanosaur_config)
 
-    resize_node = ComposableNode(
-        namespace='camera',
-        name='isaac_ros_resize',
-        package='isaac_ros_image_proc',
-        plugin='isaac_ros::image_proc::ResizeNode',
-        parameters=[{
-            'scale_height': 0.25,
-            'scale_width': 0.25,
-        }],
-        remappings=[('image', 'image_color')]
-    )
+    # Load nanosaur configuration and check if are included extra parameters
+    conf = load_config(os.path.join(pkg_bringup, 'param', 'robot.yml'))
+    # Load namespace
+    namespace = os.getenv("HOSTNAME") if conf.get("multirobot", False) else ""
 
-    argus_camera_mono_node = Node(
-        package='isaac_ros_argus_camera_mono',
-        executable='isaac_ros_argus_camera_mono',
-        namespace='camera',
-        parameters=[{
-                'sensor': 5,
-                'device': 0,
-                'output_encoding': 'rgb8',
-                'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
-        }],
-        remappings=[('/image_raw', 'image_color'),
-                    ('/image_raw/compressedDepth', 'image_color/compressedDepth'),
-                    ('/image_raw/compressed', 'image_color/compressed'),
-                    ('/camera_info', 'camera_info')
-                    ]
-    )
-    argus_camera_mono_container = ComposableNodeContainer(
-        name='argus_camera_mono_container',
-        namespace='camera',
-        package='rclcpp_components',
-        executable='component_container',
-        composable_node_descriptions=[
-            resize_node,
-            rectify_node,
-            apriltag_node
-        ],
+    nanosaur_camera_node = Node(
+        package='nanosaur_camera',
+        namespace=namespace,
+        executable='nanosaur_camera',
+        name='nanosaur_camera',
+        respawn=True,
+        respawn_delay=5,
+        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [],
         output='screen'
     )
     
-    return LaunchDescription([argus_camera_mono_container, argus_camera_mono_node])
+    return LaunchDescription([
+        DeclareLaunchArgument(
+            'nanosaur_dir',
+            default_value=nanosaur_dir,
+            description='Full path to nanosaur parameter file to load'),
+        nanosaur_camera_node
+        ])
 # EOF
