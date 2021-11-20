@@ -140,7 +140,7 @@ main()
         fi
 
         echo "- Build repo ${green}$REPO_NAME:$TAG${reset}"
-        docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" $BASE_IMAGE_ARG .
+        docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" $BASE_IMAGE_ARG . || { echo "${red}Build $REPO_NAME:$TAG failure!${reset}"; exit 1; }
 
         if $CI_BUILD ; then
             echo "- ${bold}Prune${reset} old docker images"
