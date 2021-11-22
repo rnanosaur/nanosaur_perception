@@ -25,8 +25,8 @@
 
 import os
 import yaml
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch_ros.descriptions import ComposableNode
 from launch_ros.substitutions import FindPackageShare
@@ -52,10 +52,10 @@ def load_config(config):
 
 
 def generate_launch_description():
-    pkg_perception = FindPackageShare(package='nanosaur_perception').find('nanosaur_perception')
+    pkg_perception = os.path.join(get_package_share_directory('nanosaur_perception'))
     nanosaur_config = os.path.join(pkg_perception, 'param', 'nanosaur.yml')
-    nanosaur_dir = LaunchConfiguration('nanosaur_dir', default=nanosaur_config)
-
+    # Load locally the configuration
+    loaded_config = load_config(nanosaur_config)
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
     # Load namespace
@@ -70,7 +70,7 @@ def generate_launch_description():
                     ('camera/camera_info', 'resized/camera_info'),
                     ('tf', '/tf'),
                     ('tag_detections', '/tag_detections')],
-        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [cfg_36h11])
+        parameters=[loaded_config if "isaac_ros_apriltag" in loaded_config else cfg_36h11])
 
     rectify_node = ComposableNode(
         namespace=namespace + 'camera',
@@ -82,28 +82,32 @@ def generate_launch_description():
                     ]
     )
 
+    resize_config = {
+        'scale_height': 0.25,
+        'scale_width': 0.25,
+        }
+
     resize_node = ComposableNode(
         namespace=namespace + 'camera',
         name='isaac_ros_resize',
         package='isaac_ros_image_proc',
         plugin='isaac_ros::image_proc::ResizeNode',
-        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [{
-            'scale_height': 0.25,
-            'scale_width': 0.25,
-        }],
+        parameters=[loaded_config if "isaac_ros_resize" in loaded_config else resize_config],
         remappings=[('image', 'image_color')]
     )
+
+    argus_camera_config = {
+        'sensor': 5,
+        'device': 0,
+        'output_encoding': 'rgb8',
+        'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
+        }
 
     argus_camera_mono_node = Node(
         package='isaac_ros_argus_camera_mono',
         executable='isaac_ros_argus_camera_mono',
         namespace=namespace + 'camera',
-        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [{
-                'sensor': 5,
-                'device': 0,
-                'output_encoding': 'rgb8',
-                'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
-        }],
+        parameters=[loaded_config if "isaac_ros_argus_camera_mono" in loaded_config else argus_camera_config],
         remappings=[('/image_raw', 'image_color'),
                     ('/image_raw/compressedDepth', 'image_color/compressedDepth'),
                     ('/image_raw/compressed', 'image_color/compressed'),
@@ -125,5 +129,7 @@ def generate_launch_description():
         output='screen'
     )
     
-    return LaunchDescription([argus_camera_mono_container, argus_camera_mono_node])
+    return LaunchDescription([
+        argus_camera_mono_container,
+        argus_camera_mono_node])
 # EOF
