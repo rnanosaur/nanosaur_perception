@@ -100,7 +100,7 @@ def generate_launch_description():
         'sensor': 5,
         'device': 0,
         'output_encoding': 'rgb8',
-        'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
+        'camera_info_url': "package://nanosaur_perception/camera_info/camerav2.yml"
         }
 
     argus_camera_mono_node = Node(
