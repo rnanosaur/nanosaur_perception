@@ -34,6 +34,29 @@ ARG L4T=r32.6
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Install OpenCV dependencies
+RUN apt-get update && apt-get install -y \
+    libavformat-dev \
+    libjpeg-dev \
+    libopenjp2-7-dev \
+    libpng-dev \
+    libpq-dev \
+    libswscale-dev \
+    libtbb2 \
+    libtbb-dev \
+    libtiff-dev \
+    pkg-config \
+    yasm && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install additional packages needed for ROS2 dependencies
+RUN apt-get update && apt-get install -y \
+    python3-distutils \
+    libboost-all-dev \
+    libboost-dev \
+    libpcl-dev && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install Git-LFS and other packages
 RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
     apt-get update && apt-get install -y git-lfs software-properties-common && \
@@ -54,6 +77,17 @@ ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/usr/local/cuda-${CUDA}/targets/aarch64-linux/lib:${LD_LIBRARY_PATH}"
 ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra-egl:${LD_LIBRARY_PATH}"
 
+# Install pcl_conversions & sensor_msgs_py
+COPY nanosaur_perception/rosinstall/isaac_ros_fix.rosinstall isaac_ros_fix.rosinstall
+
+RUN mkdir -p ${ROS_ROOT}/src && \
+    vcs import ${ROS_ROOT}/src < isaac_ros_fix.rosinstall && \
+    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+    cd ${ROS_ROOT} && \
+    rosdep install -y --ignore-src --from-paths src --rosdistro foxy && \
+    colcon build --merge-install --packages-up-to pcl_conversions sensor_msgs_py diagnostic_updater xacro && \
+    rm -Rf src logs build
+
 # Install gcc8 for cross-compiled binaries from Ubuntu 20.04
 RUN apt-get update && \
     add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
@@ -68,6 +102,25 @@ RUN apt-get update && \
         /usr/bin/g++-8 8 && \
     rm -rf /var/lib/apt/lists/*
 
+################ INSTALL REALSENSE #######################
+
+# Install Realsense
+RUN apt-get update && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE && \
+    add-apt-repository -y "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u && \
+    apt-get install -y rsync librealsense2-utils librealsense2-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install ros2 realsense pkg
+RUN mkdir -p /opt/ros/foxy/src && \
+    cd /opt/ros/foxy/src && \
+    git clone --depth 1 --branch `git ls-remote --tags https://github.com/IntelRealSense/realsense-ros.git | grep -Po "(?<=tags/)3.\d+\.\d+" | sort -V | tail -1` https://github.com/IntelRealSense/realsense-ros.git && \
+    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+    cd /opt/ros/foxy && \
+    colcon build --merge-install --packages-up-to realsense2_camera realsense2_description && \
+    rm -Rf src logs build
+
 ################ INSTALL ISAAC ROS ####################
 
 # Download and build nanosaur_isaac_ros
@@ -81,7 +134,8 @@ RUN apt-get update && \
     vcs import ${ISAAC_ROS_WS}/src < isaac_ros.rosinstall && \
     rm -rf /var/lib/apt/lists/*
 # Pull LFS files
-RUN cd ${ISAAC_ROS_WS}/src/isaac_ros_common && git lfs pull
+COPY nanosaur_perception/scripts/git_lfs_pull_ws.sh git_lfs_pull_ws.sh
+RUN TERM=xterm bash git_lfs_pull_ws.sh ${ISAAC_ROS_WS}/src
 
 # Change workdir
 WORKDIR $ISAAC_ROS_WS

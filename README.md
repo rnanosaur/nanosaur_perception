@@ -34,7 +34,7 @@ Meet nanosaur:
 
 The command below, build and push (optional) a nanosaur perception docker image
 ```
-. nanosaur_perception/scripts/docker_builder.sh
+bash nanosaur_perception/scripts/docker_builder.sh
 ```
 
 # License
