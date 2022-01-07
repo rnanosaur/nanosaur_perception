@@ -1,2 +1,4 @@
 .vscode
 cuda_info.txt
+
+__pycache__

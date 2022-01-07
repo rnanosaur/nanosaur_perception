@@ -5,6 +5,11 @@ name: Docker Builder CI
 # https://jasonet.co/posts/scheduled-actions/
 on: [push, workflow_dispatch]
 
+# https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
 
   docker:

@@ -10,3 +10,6 @@
 - git:
     local-name: isaac_ros_argus_camera
     uri: https://github.com/rbonghi/isaac_ros_argus_camera.git
+- git:
+    local-name: isaac_ros_visual_odometry
+    uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_visual_odometry.git

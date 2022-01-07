@@ -2,128 +2,95 @@
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
-# 1. Redistributions of source code must retain the above copyright 
+# 1. Redistributions of source code must retain the above copyright
 #    notice, this list of conditions and the following disclaimer.
 # 2. Redistributions in binary form must reproduce the above copyright
 #    notice, this list of conditions and the following disclaimer in the
 #    documentation and/or other materials provided with the distribution.
-# 3. Neither the name of the copyright holder nor the names of its 
-#    contributors may be used to endorse or promote products derived 
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived
 #    from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
-# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
-# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+# CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
+# BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 # FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
 # SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
-# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
-# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+# OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+# WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+# OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-import yaml
-from launch import LaunchDescription
+import sys
+
+from ament_index_python.packages import get_package_share_directory
+
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import ComposableNodeContainer, Node
-from launch_ros.descriptions import ComposableNode
-from launch_ros.substitutions import FindPackageShare
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
+from launch import LaunchDescription
+from launch.conditions import IfCondition, LaunchConfigurationEquals
 
-
-# detect all 36h11 tags
-cfg_36h11 = {
-    'image_transport': 'raw',
-    'family': '36h11',
-    'size': 0.162
-}
-
-
-def load_config(config):
-    if os.path.isfile(config):
-        
-        with open(config, "r") as stream:
-            try:
-                return yaml.safe_load(stream)
-            except yaml.YAMLError as exc:
-                print(exc)
-    return {}
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+from service import load_config
 
 
 def generate_launch_description():
-    pkg_perception = FindPackageShare(package='nanosaur_perception').find('nanosaur_perception')
-    nanosaur_config = os.path.join(pkg_perception, 'param', 'nanosaur.yml')
-    nanosaur_dir = LaunchConfiguration('nanosaur_dir', default=nanosaur_config)
+    pkg_perception = get_package_share_directory('nanosaur_perception')
 
+    config_common_path = LaunchConfiguration('config_common_path')
+    namespace = LaunchConfiguration('namespace')
+    cover_type = LaunchConfiguration('cover_type')
+
+    nanosaur_config_path = os.path.join(
+        pkg_perception, 'param', 'nanosaur.yml')
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
-    # Load namespace
-    namespace = os.getenv("HOSTNAME") + "/" if conf.get("multirobot", False) else ""
+    # Load namespace from robot.yml
+    namespace_conf = os.getenv("HOSTNAME") if conf.get("multirobot", False) else ""
+    # Load cover_type from robot.yml
+    cover_type_conf = conf.get("cover_type", 'realsense')
 
-    apriltag_node = ComposableNode(
-        name='apriltag',
-        package='isaac_ros_apriltag',
-        plugin='isaac_ros::apriltag::AprilTagNode',
-        namespace=namespace + 'camera',
-        remappings=[('camera/image_rect', 'image_rect'),
-                    ('camera/camera_info', 'resized/camera_info'),
-                    ('tf', '/tf'),
-                    ('tag_detections', '/tag_detections')],
-        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [cfg_36h11])
+    declare_cover_type_cmd = DeclareLaunchArgument(
+        name='cover_type',
+        default_value=cover_type_conf,
+        description='Cover type to use. Options: pi, fisheye, realsense, zedmini.')
 
-    rectify_node = ComposableNode(
-        namespace=namespace + 'camera',
-        name='isaac_ros_rectify',
-        package='isaac_ros_image_proc',
-        plugin='isaac_ros::image_proc::RectifyNode',
-        remappings=[('image', 'resized/image'),
-                    ('camera_info', 'resized/camera_info'),
-                    ]
-    )
+    declare_config_common_path_cmd = DeclareLaunchArgument(
+        'config_common_path',
+        default_value=nanosaur_config_path,
+        description='Path to the `nanosaur.yml` file.')
 
-    resize_node = ComposableNode(
-        namespace=namespace + 'camera',
-        name='isaac_ros_resize',
-        package='isaac_ros_image_proc',
-        plugin='isaac_ros::image_proc::ResizeNode',
-        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [{
-            'scale_height': 0.25,
-            'scale_width': 0.25,
-        }],
-        remappings=[('image', 'image_color')]
-    )
+    declare_namespace_cmd = DeclareLaunchArgument(
+        'namespace',
+        default_value=namespace_conf,
+        description='Enable a namespace for multiple robot. This namespace group all nodes and topics.')
 
-    argus_camera_mono_node = Node(
-        package='isaac_ros_argus_camera_mono',
-        executable='isaac_ros_argus_camera_mono',
-        namespace=namespace + 'camera',
-        parameters=[nanosaur_dir] if os.path.isfile(nanosaur_config) else [{
-                'sensor': 5,
-                'device': 0,
-                'output_encoding': 'rgb8',
-                'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
-        }],
-        remappings=[('/image_raw', 'image_color'),
-                    ('/image_raw/compressedDepth', 'image_color/compressedDepth'),
-                    ('/image_raw/compressed', 'image_color/compressed'),
-                    ('/camera_info', 'camera_info')
-                    ]
-    )
+    # Nanosaur mipi camera
+    mipi_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([pkg_perception, '/launch/mipi.launch.py']),
+        launch_arguments={'cover_type': cover_type}.items())
+
+    # Nanosaur realsense camera
+    realsense_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([pkg_perception, '/launch/realsense.launch.py']))
+
+    ld = LaunchDescription()
+
+    ld.add_action(declare_cover_type_cmd)
+    ld.add_action(declare_config_common_path_cmd)
+    ld.add_action(declare_namespace_cmd)
     
-    nodes = [resize_node, rectify_node]
-    # apriltag node
-    if conf.get("apriltag", True):
-        nodes += [apriltag_node]
-    # Build Composable node container for intra communication
-    argus_camera_mono_container = ComposableNodeContainer(
-        name='argus_camera_mono_container',
-        namespace=namespace + 'camera',
-        package='rclcpp_components',
-        executable='component_container',
-        composable_node_descriptions=nodes,
-        output='screen'
-    )
+    if cover_type_conf == 'pi' or cover_type_conf == 'fisheye':
+        ld.add_action(mipi_launch)
+    elif cover_type_conf == 'realsense':
+        ld.add_action(realsense_launch)
+    else:
+        print(f"Cover not in list! Name: {cover_type_conf}")
     
-    return LaunchDescription([argus_camera_mono_container, argus_camera_mono_node])
+    return ld
 # EOF
