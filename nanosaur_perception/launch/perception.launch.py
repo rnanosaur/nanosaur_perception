@@ -24,17 +24,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-<<<<<<< HEAD
-import yaml
-from ament_index_python.packages import get_package_share_directory
-from launch import LaunchDescription
-from launch_ros.actions import ComposableNodeContainer, Node
-from launch_ros.descriptions import ComposableNode
-from launch_ros.substitutions import FindPackageShare
-
-=======
 import sys
->>>>>>> main
 
 from ament_index_python.packages import get_package_share_directory
 
