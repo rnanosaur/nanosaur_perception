@@ -23,7 +23,7 @@ jobs:
           echo ::set-output name=tag::${GITHUB_REF/refs\/heads\//}
         fi
     - name: Checkout
-      uses: actions/checkout@v2.4.0
+      uses: actions/checkout@v3
     - name: Docker info
       shell: bash
       run: docker info
