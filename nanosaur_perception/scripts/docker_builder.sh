@@ -54,7 +54,7 @@ usage()
     echo "  --push                  |  Push docker. Need to be logged in " >&2
     echo "  --latest                |  Tag and push latest release" >&2
     echo "  --repo REPO_NAME        |  Set repository to push " >&2
-    echo "  --Dockerfile FILE       |  Dockerfile nanme [${bold}Dockerfile${reset}] " >&2
+    echo "  --dockerfile FILE       |  Dockerfile name [${bold}Dockerfile${reset}] " >&2
     echo "  --branch BRANCH_DISTRO  |  Set tag from branch " >&2
     echo "  --base-image BASE_IMAGE |  Change base image to build. [${bold}$BASE_IMAGE_DEFAULT${reset}]" >&2
 }

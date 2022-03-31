@@ -26,6 +26,10 @@
 # Jetpack 4.6.1
 # Docker file for aarch64 based Jetson device
 FROM dustynv/ros:foxy-ros-base-l4t-r32.7.1
+# Enviroment variables
+ENV L4T_MINOR_VERSION=7.1
+ENV JETPACK_MAJOR=4
+ENV JETPACK_MINOR=61
 # Configuration CUDA
 ARG CUDA=10.2
 ARG L4T=r32.7
