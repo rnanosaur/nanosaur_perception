@@ -71,6 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
+    name: "Build ${{ matrix.project }}"
     steps:
     - name: Extract tag name
       id: extract_tag
