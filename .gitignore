@@ -1,4 +1,5 @@
 .vscode
 cuda_info.txt
+matrix.json
 
 __pycache__

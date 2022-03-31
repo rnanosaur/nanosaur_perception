@@ -1,4 +1,5 @@
-# Copyright (C) 2021, Raffaello Bonghi <raffaello@rnext.it>
+#!/bin/bash
+# Copyright (C) 2022, Raffaello Bonghi <raffaello@rnext.it>
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -10,7 +11,7 @@
 # 3. Neither the name of the copyright holder nor the names of its 
 #    contributors may be used to endorse or promote products derived 
 #    from this software without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
 # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
@@ -23,13 +24,45 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-version: "3.9"
-services:
-  perception: # https://nanosaur.ai
-    image: nanosaur/perception:main
-    network_mode: ${DOCKER_NETWORK:-host}
-    restart: always
-    environment:
-      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-    volumes:
-      - "/tmp/argus_socket:/tmp/argus_socket" # CSI camera
+bold=`tput bold`
+red=`tput setaf 1`
+green=`tput setaf 2`
+yellow=`tput setaf 3`
+reset=`tput sgr0`
+
+
+main()
+{
+    local start_from=1
+    local local_folder=$(pwd)
+    local json_file="matrix.json"
+
+    # find all docker to build
+    local docker=$(find . -type f -name 'Dockerfile.*' | sed 's|.*\.||' | sort -u)
+    local n_docker=$(echo "$docker" | wc -w)
+
+    echo "There are ${green}$n_docker docker${reset} to build in the current path"
+
+    # https://github.blog/changelog/2020-04-15-github-actions-new-workflow-features/
+    # https://docs.github.com/en/actions/learn-github-actions/expressions#fromjson
+    echo -n "{\"include\":[" > $json_file
+    # Worker to build all docker file
+    local i=1
+    for value in $docker
+    do
+        local file_name="Dockerfile.$value"
+        echo "- $i Docker: ${green}$file_name${reset}"
+
+        local separator=","
+        if [ $i = $n_docker ] ; then
+            separator="]"
+        fi
+        echo -n "{\"project\": \"$(basename $file_name)\"}$separator" >> $json_file
+        i=$((i+1))
+    done
+    echo -n "}" >> $json_file
+
+}
+
+main $@
+# EOF
