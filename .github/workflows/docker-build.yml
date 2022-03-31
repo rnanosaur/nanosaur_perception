@@ -11,8 +11,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  matrix-builder:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: Extract matrix
+      id: set-matrix
+      run: |
+        TERM=xterm bash .github/ci_builder.sh
+        echo "::set-output name=matrix::$(cat matrix.json)"
 
-  docker:
+  perception-base:
     name: "Build Docker image develop"
     runs-on: self-hosted
     steps:
@@ -53,6 +65,28 @@ jobs:
       run: |
         BRANCH_NAME=${{ steps.extract_tag.outputs.tag }}
         TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME --latest
+
+  perception-camera:
+    needs: [matrix-builder]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
+    steps:
+    - name: Extract tag name
+      id: extract_tag
+      shell: bash
+      run: |
+        if ${{ startsWith(github.ref, 'refs/tags/') }} ; then
+          echo ::set-output name=tag::${GITHUB_REF/refs\/tags\//}
+        else
+          echo ::set-output name=tag::${GITHUB_REF/refs\/heads\//}
+        fi
+    - name: Checkout code
+      uses: actions/checkout@v3
+    - name: "Build docker ${{ matrix.project }}"
+      run: |
+        echo "run ${{ matrix.project }}"
+        # TERM=xterm bash scripts/build_docker.sh ${{ matrix.project }} -ci
 
   make_release:
     name: Upload release
