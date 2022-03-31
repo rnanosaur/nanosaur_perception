@@ -24,7 +24,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Docker file for aarch64 based Jetson device
-FROM nanosaur/perception:foxy-base
+FROM nanosaur/perception:foxy
 # ZED version
 ARG ZED_SDK_MAJOR=3
 ARG ZED_SDK_MINOR=7

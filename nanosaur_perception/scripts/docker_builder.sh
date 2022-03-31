@@ -49,12 +49,14 @@ usage()
     echo "" >&2
     echo "Commands:" >&2
     echo "  -v                      |  Verbose. Schow extra info " >&2
+    echo "  --test                  |  Show output commands without build nothing. ONLY TEST " >&2
     echo "  -ci                     |  Build docker without cache " >&2
     echo "  --push                  |  Push docker. Need to be logged in " >&2
     echo "  --latest                |  Tag and push latest release" >&2
     echo "  --repo REPO_NAME        |  Set repository to push " >&2
+    echo "  --Dockerfile FILE       |  Dockerfile nanme [${bold}Dockerfile${reset}] " >&2
     echo "  --branch BRANCH_DISTRO  |  Set tag from branch " >&2
-    echo "  --base-image BASE_IMAGE |  Change base image to build. Default=${bold}$BASE_IMAGE_DEFAULT${reset}" >&2
+    echo "  --base-image BASE_IMAGE |  Change base image to build. [${bold}$BASE_IMAGE_DEFAULT${reset}]" >&2
 }
 
 main()
@@ -69,9 +71,11 @@ main()
     local PUSH=false
     local VERBOSE=false
     local REPO_NAME="nanosaur/perception"
+    local DOCKERFILE_NAME="Dockerfile"
     local CI_BUILD=false
     local BRANCH_DISTRO="foxy"
     local LATEST=false
+    local TEST=false
     # Base image
     local BASE_IMAGE=""
 	# Decode all information from startup
@@ -84,11 +88,18 @@ main()
             -v)
                 VERBOSE=true
                 ;;
+            --test)
+                TEST=true
+                ;;
             -ci)
                 CI_BUILD=true
                 ;;
             --repo)
                 REPO_NAME=$2
+                shift 1
+                ;;
+            --dockerfile)
+                DOCKERFILE_NAME=$2
                 shift 1
                 ;;
             --branch)
@@ -117,6 +128,11 @@ main()
     # Build tag
     local TAG="$BRANCH_DISTRO"
 
+    if [[ $DOCKERFILE_NAME =~ (.*)?\.(.*) ]] ; then
+        local extension="${DOCKERFILE_NAME##*.}"
+        TAG="$BRANCH_DISTRO-$extension"
+    fi
+
     if ! $PUSH ; then
         echo "- Extract Libraries info"
         local DPKG_STATUS=$(get_dpkg_status cuda-cudart-10-2)$(get_dpkg_status libcufft-10-2)
@@ -139,8 +155,10 @@ main()
             BASE_IMAGE_ARG="--build-arg BASE_IMAGE=$BASE_IMAGE"
         fi
 
-        echo "- Build repo ${green}$REPO_NAME:$TAG${reset}"
-        docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" $BASE_IMAGE_ARG .
+        echo "- Build Dockerfile ${bold}$DOCKERFILE_NAME${reset} with name ${green}$REPO_NAME:$TAG${reset}"
+        if ! $TEST ; then
+            docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" -f $DOCKERFILE_NAME $BASE_IMAGE_ARG .
+        fi
 
         if $CI_BUILD ; then
             echo "- ${bold}Prune${reset} old docker images"
