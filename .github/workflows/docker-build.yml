@@ -68,7 +68,7 @@ jobs:
 
   perception-camera:
     needs: [matrix-builder, perception-base]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     strategy:
       matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
     name: "Build ${{ matrix.project }}"
