@@ -52,8 +52,13 @@ def generate_launch_description():
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
     # Load namespace from robot.yml
     namespace_conf = os.getenv("HOSTNAME") if conf.get("multirobot", False) else ""
-    # Load cover_type from robot.yml
-    cover_type_conf = conf.get("cover_type", 'fisheye')
+    # Load cover_type
+    if "cover_type" in conf:
+        cover_type_conf = conf.get("cover_type", 'fisheye')
+        print(f"Load cover_type from robot.xml: {cover_type_conf}")
+    else:
+        cover_type_conf = os.getenv("COVER_TYPE", 'fisheye')
+        print(f"Load cover_type from ENV: {cover_type_conf}")
 
     declare_cover_type_cmd = DeclareLaunchArgument(
         name='cover_type',
