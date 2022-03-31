@@ -61,8 +61,13 @@ def generate_launch_description():
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
 
-    # Load cover_type from robot.yml
-    cover_type_conf = conf.get("cover_type", 'pi')
+    # Load cover_type
+    if "cover_type" in conf:
+        cover_type_conf = conf.get("cover_type", 'fisheye')
+        print(f"Load cover_type from robot.xml: {cover_type_conf}")
+    else:
+        cover_type_conf = os.getenv("COVER_TYPE", "fisheye")
+        print(f"Load cover_type from ENV: {cover_type_conf}")
 
     conf_detector = ConfDetector(nanosaur_config_path)
 

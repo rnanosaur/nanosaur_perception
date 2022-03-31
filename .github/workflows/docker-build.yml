@@ -25,7 +25,7 @@ jobs:
         echo "::set-output name=matrix::$(cat matrix.json)"
 
   perception-base:
-    name: "Build Docker image develop"
+    name: "Build Dockerfile base"
     runs-on: self-hosted
     steps:
     - name: Extract tag name
