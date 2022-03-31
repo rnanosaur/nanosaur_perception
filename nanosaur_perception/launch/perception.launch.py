@@ -53,7 +53,7 @@ def generate_launch_description():
     # Load namespace from robot.yml
     namespace_conf = os.getenv("HOSTNAME") if conf.get("multirobot", False) else ""
     # Load cover_type from robot.yml
-    cover_type_conf = conf.get("cover_type", 'realsense')
+    cover_type_conf = conf.get("cover_type", 'fisheye')
 
     declare_cover_type_cmd = DeclareLaunchArgument(
         name='cover_type',

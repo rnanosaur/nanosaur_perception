@@ -23,13 +23,12 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Jetpack 4.6
+# Jetpack 4.6.1
 # Docker file for aarch64 based Jetson device
-ARG BASE_IMAGE="dustynv/ros:foxy-ros-base-l4t-r32.6.1"
-FROM ${BASE_IMAGE}
+FROM dustynv/ros:foxy-ros-base-l4t-r32.7.1
 # Configuration CUDA
 ARG CUDA=10.2
-ARG L4T=r32.6
+ARG L4T=r32.7
 
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -54,12 +53,25 @@ RUN apt-get update && apt-get install -y \
     python3-distutils \
     libboost-all-dev \
     libboost-dev \
-    libpcl-dev && \
+    libpcl-dev \
+    libode-dev \
+    lcov \
+    python3-zmq \
+    libxaw7-dev \
+    libgraphicsmagick++1-dev \
+    graphicsmagick-libmagick-dev-compat \
+    libceres-dev \
+    libsuitesparse-dev \
+    libncurses5-dev \
+    libassimp-dev \
+    libyaml-cpp-dev \
+    libpcap-dev && \
     rm -rf /var/lib/apt/lists/*
 
 # Install Git-LFS and other packages
-RUN curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.deb.sh | bash && \
-    apt-get update && apt-get install -y git-lfs software-properties-common && \
+RUN apt-get update && apt-get install -y \
+    git-lfs \
+    software-properties-common && \
     rm -rf /var/lib/apt/lists/*
 
 # Fix cuda info
@@ -101,25 +113,6 @@ RUN apt-get update && \
     update-alternatives --install /usr/bin/aarch64-linux-gnu-g++ aarch64-linux-gnu-g++ \
         /usr/bin/g++-8 8 && \
     rm -rf /var/lib/apt/lists/*
-
-################ INSTALL REALSENSE #######################
-
-# Install Realsense
-RUN apt-get update && \
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE || \
-    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE && \
-    add-apt-repository -y "deb https://librealsense.intel.com/Debian/apt-repo $(lsb_release -cs) main" -u && \
-    apt-get install -y rsync librealsense2-utils librealsense2-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install ros2 realsense pkg
-RUN mkdir -p /opt/ros/foxy/src && \
-    cd /opt/ros/foxy/src && \
-    git clone --depth 1 --branch `git ls-remote --tags https://github.com/IntelRealSense/realsense-ros.git | grep -Po "(?<=tags/)3.\d+\.\d+" | sort -V | tail -1` https://github.com/IntelRealSense/realsense-ros.git && \
-    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    cd /opt/ros/foxy && \
-    colcon build --merge-install --packages-up-to realsense2_camera realsense2_description && \
-    rm -Rf src logs build
 
 ################ INSTALL ISAAC ROS ####################
 
@@ -166,9 +159,6 @@ RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
 
 ################ Final enviroment setup ####################
 
-ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
-# https://docs.docker.com/engine/reference/builder/#stopsignal
-# https://hynek.me/articles/docker-signals/
 STOPSIGNAL SIGINT
 # source ros package from entrypoint
 RUN sed --in-place --expression \

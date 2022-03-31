@@ -1,4 +1,7 @@
 - git:
+    local-name: image_manipulator
+    uri: https://github.com/gbr1/image_manipulator.git
+- git:
     local-name: isaac_ros_common
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common.git
 - git:
@@ -11,5 +14,5 @@
     local-name: isaac_ros_argus_camera
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_argus_camera.git
 - git:
-    local-name: isaac_ros_visual_odometry
-    uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_visual_odometry.git
+    local-name: isaac_ros_visual_slam
+    uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_visual_slam.git

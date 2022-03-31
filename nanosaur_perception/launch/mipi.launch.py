@@ -61,6 +61,9 @@ def generate_launch_description():
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
 
+    # Load cover_type from robot.yml
+    cover_type_conf = conf.get("cover_type", 'pi')
+
     conf_detector = ConfDetector(nanosaur_config_path)
 
     ############# ROS2 DECLARATIONS #############
@@ -77,7 +80,7 @@ def generate_launch_description():
 
     declare_cover_type_cmd = DeclareLaunchArgument(
         name='cover_type',
-        default_value='fisheye',
+        default_value=cover_type_conf,
         description='Cover type to use. Options: pi, fisheye, realsense, zedmini.')
 
     # Doesn't work now
@@ -97,7 +100,7 @@ def generate_launch_description():
                 'sensor': 5,
                 'device': 0,
                 'output_encoding': 'rgb8',
-                'camera_info_path': "nanosaur_perception/camera_info/camerav2.yml"
+                'camera_info_url': "package://nanosaur_perception/camera_info/camerav2.yml"
         }],
         remappings=[('/image_raw', 'image_color'),
                     ('/image_raw/compressedDepth', 'image_color/compressedDepth'),
@@ -120,16 +123,6 @@ def generate_launch_description():
         parameters=[config_common_path] if conf_detector.is_package('apriltag') else [cfg_36h11],
     )
 
-    rectify_node = ComposableNode(
-        namespace=namespace_camera,
-        name='isaac_ros_rectify',
-        package='isaac_ros_image_proc',
-        plugin='isaac_ros::image_proc::RectifyNode',
-        remappings=[('image', 'resized/image'),
-                    ('camera_info', 'resized/camera_info'),
-                    ]
-    )
-
     resize_node = ComposableNode(
         namespace=namespace_camera,
         name='isaac_ros_resize',
@@ -142,8 +135,21 @@ def generate_launch_description():
         remappings=[('image', 'image_color')]
     )
 
+    remap_pi = 'image_rect' if cover_type_conf == 'pi' else 'image_out'
+    
+    rectify_node = ComposableNode(
+        namespace=namespace_camera,
+        name='isaac_ros_rectify',
+        package='isaac_ros_image_proc',
+        plugin='isaac_ros::image_proc::RectifyNode',
+        remappings=[('image', 'resized/image'),
+                    ('camera_info', 'resized/camera_info'),
+                    ('image_rect', remap_pi),
+                    ]
+    )
+
     nodes = [resize_node, rectify_node]
-    if conf.get("apriltag", True):
+    if conf.get("apriltag", False):
         nodes += [apriltag_node]
 
     # Build Composable node container for intra communication
@@ -154,6 +160,17 @@ def generate_launch_description():
         executable='component_container',
         composable_node_descriptions=nodes,
         output='screen'
+    )
+
+    rotate_mage_node = Node(
+        package='image_manipulator',
+        executable='flipper',
+        output='screen',
+        namespace=namespace_camera,
+        parameters=[{'flip_vertical': True}],
+        remappings=[('/image/raw', 'image_rect'),
+                    ('/image/flipped', 'image_out')
+                    ]
     )
 
     ############################
@@ -167,6 +184,9 @@ def generate_launch_description():
     
     ld.add_action(argus_camera_mono_node)
     ld.add_action(argus_camera_mono_container)
+    
+    if cover_type_conf == 'pi':
+        ld.add_action(rotate_mage_node)
 
     return ld
 # EOF
