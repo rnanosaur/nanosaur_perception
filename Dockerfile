@@ -27,10 +27,10 @@
 # Docker file for aarch64 based Jetson device
 FROM dustynv/ros:foxy-ros-base-l4t-r32.7.1
 # L4T variables
-ARG L4T=32.7
+ENV L4T=32.7
 ENV L4T_MINOR_VERSION=7.1
 # Configuration CUDA
-ARG CUDA=10.2
+ENV CUDA=10.2
 
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
