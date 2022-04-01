@@ -26,13 +26,11 @@
 # Jetpack 4.6.1
 # Docker file for aarch64 based Jetson device
 FROM dustynv/ros:foxy-ros-base-l4t-r32.7.1
-# Enviroment variables
+# L4T variables
+ARG L4T=32.7
 ENV L4T_MINOR_VERSION=7.1
-ENV JETPACK_MAJOR=4
-ENV JETPACK_MINOR=61
 # Configuration CUDA
 ARG CUDA=10.2
-ARG L4T=r32.7
 
 # Disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
@@ -83,7 +81,7 @@ ARG DPKG_STATUS
 # Add nvidia repo/public key and install VPI libraries
 RUN echo "$DPKG_STATUS" >> /var/lib/dpkg/status && \
     curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc && \
-    echo "deb https://repo.download.nvidia.com/jetson/common ${L4T} main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
+    echo "deb https://repo.download.nvidia.com/jetson/common r${L4T} main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
     apt-get update && apt-get install -y libnvvpi1 vpi1-dev && \
     rm -rf /var/lib/apt/lists/*
 
