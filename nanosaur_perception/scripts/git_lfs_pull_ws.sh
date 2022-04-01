@@ -40,7 +40,6 @@ main()
         exit 33
     fi
 
-    local json_file="matrix.json"
     # Build a list of folder available
     for d in $local_folder/*/
     do
