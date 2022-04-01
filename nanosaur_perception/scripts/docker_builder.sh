@@ -157,7 +157,7 @@ main()
 
         echo "- Build Dockerfile ${bold}$DOCKERFILE_NAME${reset} with name ${green}$REPO_NAME:$TAG${reset}"
         if ! $TEST ; then
-            docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" -f $DOCKERFILE_NAME $BASE_IMAGE_ARG .
+            docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" -f $DOCKERFILE_NAME $BASE_IMAGE_ARG .  || { echo "${red}docker build failure!${reset}"; exit 1; }
         fi
 
         if $CI_BUILD ; then
