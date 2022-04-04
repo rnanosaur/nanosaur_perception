@@ -84,6 +84,10 @@ def generate_launch_description():
     realsense_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([pkg_perception, '/launch/realsense.launch.py']))
 
+    # Nanosaur zed camera
+    zed_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([pkg_perception, '/launch/zed.launch.py']))
+
     ld = LaunchDescription()
 
     ld.add_action(declare_cover_type_cmd)
@@ -94,6 +98,8 @@ def generate_launch_description():
         ld.add_action(mipi_launch)
     elif cover_type_conf == 'realsense':
         ld.add_action(realsense_launch)
+    elif cover_type_conf == 'zed':
+        ld.add_action(zed_launch)
     else:
         print(f"Cover not in list! Name: {cover_type_conf}")
     
