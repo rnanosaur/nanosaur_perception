@@ -66,7 +66,7 @@ def generate_launch_description():
         cover_type_conf = conf.get("cover_type", 'fisheye')
         print(f"Load cover_type from robot.xml: {cover_type_conf}")
     else:
-        cover_type_conf = os.getenv("COVER_TYPE", 'fisheye')
+        cover_type_conf = os.getenv("NANOSAUR_COVER_TYPE", 'fisheye')
         print(f"Load cover_type from ENV: {cover_type_conf}")
 
     conf_detector = ConfDetector(nanosaur_config_path)
