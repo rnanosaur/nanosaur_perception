@@ -25,6 +25,7 @@
 
 import os
 import sys
+import math
 
 from ament_index_python.packages import get_package_share_directory
 
@@ -73,7 +74,7 @@ def generate_launch_description():
     # Position Z of the camera with respect to the base frame [m].
     cam_pos_z = '0.0'
     # Roll orientation of the camera with respect to the base frame [rad].
-    cam_roll = '0.0'
+    cam_roll = str(5.0 * math.pi / 180.0) 
     # Pitch orientation of the camera with respect to the base frame [rad].
     cam_pitch = '0.0'
     # Yaw orientation of the camera with respect to the base frame [rad].
