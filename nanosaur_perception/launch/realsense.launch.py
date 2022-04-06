@@ -34,7 +34,8 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import ComposableNodeContainer, Node
 from launch.actions import DeclareLaunchArgument
 from launch_ros.descriptions import ComposableNode
-from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import GroupAction
+from launch_ros.actions import PushRosNamespace
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from service import ConfDetector, load_config
@@ -77,6 +78,7 @@ def generate_launch_description():
     realsense_camera_node = Node(
         package='realsense2_camera',
         executable='realsense2_camera_node',
+        name='realsense',
         namespace=namespace_camera,
         parameters=[{
                 'infra_height': 360,
@@ -96,40 +98,43 @@ def generate_launch_description():
         package='isaac_ros_apriltag',
         plugin='isaac_ros::apriltag::AprilTagNode',
         namespace=namespace_camera,
-        remappings=[('camera/image_rect', 'image_rect'),
-                    ('camera/camera_info', 'resized/camera_info'),
-                    ('tf', '/tf'),
-                    ('tag_detections', '/tag_detections')],
+        remappings=[('camera/image_rect', 'infra1/image_rect_raw'),
+                    ('camera/camera_info', 'infra1/camera_info'),
+                    ('tf', '/tf')],
         parameters=[config_common_path] if conf_detector.is_package('apriltag') else [cfg_36h11],
     )
 
-    visual_odometry_node = ComposableNode(
-        name='visual_odometry_node',
-        package='isaac_ros_visual_odometry',
+    visual_slam_node = ComposableNode(
+        name='visual_slam_node',
+        package='isaac_ros_visual_slam',
         namespace='camera',
-        plugin='isaac_ros::visual_odometry::VisualOdometryNode',
+        plugin='isaac_ros::visual_slam::VisualSlamNode',
         parameters=[{
                     'enable_rectified_pose': False,
                     'denoise_input_images': False,
                     'rectified_images': True,
                     'enable_debug_mode': False,
-                    'enable_imu': True,
                     'debug_dump_path': '/tmp/elbrus',
-                    'left_camera_frame': 'camera_infra1_frame',
-                    'right_camera_frame': 'camera_infra2_frame',
-                    'fixed_frame': 'odom',
-                    'imu_frame': 'camera_imu_optical_frame',
-                    'current_smooth_frame': 'base_link',
-                    'current_rectified_frame': 'base_link_rect'
+                    'enable_slam_visualization': True,
+                    'enable_landmarks_view': True,
+                    'enable_observations_view': True,
+                    'enable_imu': True,
+                    'map_frame': 'map',
+                    'odom_frame': 'odom',
+                    'base_frame': 'base_link',
+                    'input_imu_frame': 'camera_imu_optical_frame',
+                    'input_left_camera_frame': 'camera_infra1_frame',
+                    'input_right_camera_frame': 'camera_infra2_frame'
                     }],
         remappings=[('stereo_camera/left/image', 'infra1/image_rect_raw'),
                     ('stereo_camera/left/camera_info', 'infra1/camera_info'),
                     ('stereo_camera/right/image', 'infra2/image_rect_raw'),
                     ('stereo_camera/right/camera_info', 'infra2/camera_info'),
-                    ('visual_odometry/imu', 'imu')]
+                    ('visual_slam/imu', 'imu'),
+                    ('tf', '/tf')]
     )
 
-    nodes = [visual_odometry_node]
+    nodes = [visual_slam_node]
     if conf.get("apriltag", True):
         nodes += [apriltag_node]
 
@@ -143,6 +148,17 @@ def generate_launch_description():
     )
     
     ############################
+
+    # Nanosaur mipi camera
+    realsense_launch = GroupAction(
+        actions=[
+            # push-ros-namespace to set namespace of included nodes
+            PushRosNamespace(namespace_conf),
+            # Argus camera
+            realsense_camera_node,
+            # camera container
+            visual_odometry_launch_container
+        ])
 
     ld = LaunchDescription()
 
