@@ -81,6 +81,16 @@ def generate_launch_description():
         name='realsense',
         namespace=namespace_camera,
         parameters=[{
+                'base_frame_id': 'camera_link',
+                'infra1_frame_id': 'camera_infra1_frame',
+                'infra2_frame_id': 'camera_infra2_frame',
+                'infra1_optical_frame_id': 'camera_infra1_optical_frame',
+                'infra2_optical_frame_id': 'camera_infra2_optical_frame',
+                'infra2_optical_frame_id': 'camera_infra2_optical_frame',
+                'gyro_frame_id': 'camera_gyro_frame',
+                'gyro_optical_frame_id': 'camera_gyro_optical_frame',
+                'accel_frame_id': 'camera_accel_frame',
+                'accel_optical_frame_id': 'camera_accel_optical_frame',
                 'infra_height': 360,
                 'infra_width': 640,
                 'enable_color': False,
@@ -107,7 +117,7 @@ def generate_launch_description():
     visual_slam_node = ComposableNode(
         name='visual_slam_node',
         package='isaac_ros_visual_slam',
-        namespace='camera',
+        namespace=namespace_camera,
         plugin='isaac_ros::visual_slam::VisualSlamNode',
         parameters=[{
                     'enable_rectified_pose': False,
@@ -149,12 +159,12 @@ def generate_launch_description():
     
     ############################
 
-    # Nanosaur mipi camera
+    # Nanosaur realsense action
     realsense_launch = GroupAction(
         actions=[
             # push-ros-namespace to set namespace of included nodes
             PushRosNamespace(namespace_conf),
-            # Argus camera
+            # realsense camera
             realsense_camera_node,
             # camera container
             visual_odometry_launch_container
@@ -163,8 +173,7 @@ def generate_launch_description():
     ld = LaunchDescription()
 
     ld.add_action(declare_namespace_camera_cmd)
-    ld.add_action(realsense_camera_node)
-    ld.add_action(visual_odometry_launch_container)
+    ld.add_action(realsense_launch)
     
     return ld
 # EOF
