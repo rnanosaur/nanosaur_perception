@@ -35,6 +35,8 @@ from launch_ros.actions import ComposableNodeContainer, Node
 from launch.actions import DeclareLaunchArgument
 from launch_ros.descriptions import ComposableNode
 from launch.conditions import IfCondition, UnlessCondition
+from launch.actions import GroupAction
+from launch_ros.actions import PushRosNamespace
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from service import ConfDetector, load_config
@@ -60,7 +62,9 @@ def generate_launch_description():
 
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
-
+    # Load namespace from robot.yml
+    namespace_conf = os.getenv("HOSTNAME") if conf.get(
+        "multirobot", False) else "nanosaur"
     # Load cover_type
     if "cover_type" in conf:
         cover_type_conf = conf.get("cover_type", 'fisheye')
@@ -75,7 +79,7 @@ def generate_launch_description():
 
     declare_namespace_camera_cmd = DeclareLaunchArgument(
         'namespace_camera',
-        default_value='camera',
+        default_value='', #'camera',
         description='camera_name_space.')
 
     declare_config_common_path_cmd = DeclareLaunchArgument(
@@ -178,6 +182,21 @@ def generate_launch_description():
                     ]
     )
 
+    actions=[
+            # push-ros-namespace to set namespace of included nodes
+            PushRosNamespace(namespace_conf),
+            # Argus camera
+            argus_camera_mono_node,
+            # camera container
+            argus_camera_mono_container
+        ]
+
+    if cover_type_conf == 'pi':
+        actions += [rotate_mage_node]
+
+    # Nanosaur mipi camera
+    mipi_launch = GroupAction(actions=actions)
+
     ############################
 
     ld = LaunchDescription()
@@ -186,12 +205,8 @@ def generate_launch_description():
     ld.add_action(declare_config_common_path_cmd)
     ld.add_action(declare_cover_type_cmd)
     ld.add_action(declare_apriltag_cmd)
-    
-    ld.add_action(argus_camera_mono_node)
-    ld.add_action(argus_camera_mono_container)
-    
-    if cover_type_conf == 'pi':
-        ld.add_action(rotate_mage_node)
+
+    ld.add_action(mipi_launch)
 
     return ld
 # EOF

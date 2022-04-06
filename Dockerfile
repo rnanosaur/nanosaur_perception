@@ -161,6 +161,9 @@ RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
 
 ################ Final enviroment setup ####################
 
+# Restore using the default Foxy DDS middleware: FastRTPS
+ENV RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+
 STOPSIGNAL SIGINT
 # source ros package from entrypoint
 RUN sed --in-place --expression \

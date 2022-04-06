@@ -34,6 +34,8 @@ from launch.substitutions import LaunchConfiguration
 from launch.actions import IncludeLaunchDescription
 from launch.actions import DeclareLaunchArgument
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.actions import GroupAction
+from launch_ros.actions import PushRosNamespace
 
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 from service import ConfDetector, load_config
@@ -51,8 +53,10 @@ def generate_launch_description():
 
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
-
-    conf_detector = ConfDetector(nanosaur_config_path)
+    
+    # Load namespace from robot.yml
+    namespace_conf = os.getenv("HOSTNAME") if conf.get(
+        "multirobot", False) else "nanosaur"
 
     # Camera model
     # use:
@@ -92,17 +96,15 @@ def generate_launch_description():
 
     declare_namespace_camera_cmd = DeclareLaunchArgument(
         'namespace_camera',
-        default_value='camera',
+        default_value=namespace_conf,
         description='camera_name_space.')
 
     ############# ROS2 NODES #############
 
     # ZED Wrapper node
+    # include another launch file in nanosaur namespace
     zed_wrapper_launch = IncludeLaunchDescription(
-        launch_description_source=PythonLaunchDescriptionSource([
-            get_package_share_directory('zed_wrapper'),
-            '/launch/include/zed_camera.launch.py'
-        ]),
+        launch_description_source=PythonLaunchDescriptionSource([pkg_zed, '/launch/include/zed_camera.launch.py']),
         launch_arguments={
             'camera_model': camera_model,
             'camera_name': camera_name,
@@ -121,12 +123,20 @@ def generate_launch_description():
         }.items()
     )
 
+    zed_wrapper_action = GroupAction(
+        actions=[
+            # push-ros-namespace to set namespace of included nodes
+            PushRosNamespace(namespace_camera),
+            # ZED wrapper launcher
+            zed_wrapper_launch
+        ]
+    )
 
     ############################
 
     ld = LaunchDescription()
 
     ld.add_action(declare_namespace_camera_cmd)
-    ld.add_action(zed_wrapper_launch)
+    ld.add_action(zed_wrapper_action)
     
     return ld

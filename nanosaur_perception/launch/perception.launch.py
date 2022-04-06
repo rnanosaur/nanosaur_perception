@@ -23,6 +23,7 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+
 import os
 import sys
 
@@ -51,7 +52,8 @@ def generate_launch_description():
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
     # Load namespace from robot.yml
-    namespace_conf = os.getenv("HOSTNAME") if conf.get("multirobot", False) else ""
+    namespace_conf = os.getenv("HOSTNAME") if conf.get(
+        "multirobot", False) else "nanosaur"
     # Load cover_type
     if "cover_type" in conf:
         cover_type_conf = conf.get("cover_type", 'fisheye')
@@ -93,7 +95,7 @@ def generate_launch_description():
     ld.add_action(declare_cover_type_cmd)
     ld.add_action(declare_config_common_path_cmd)
     ld.add_action(declare_namespace_cmd)
-    
+
     if cover_type_conf == 'pi' or cover_type_conf == 'fisheye':
         ld.add_action(mipi_launch)
     elif cover_type_conf == 'realsense':
@@ -102,6 +104,6 @@ def generate_launch_description():
         ld.add_action(zed_launch)
     else:
         print(f"Cover not in list! Name: {cover_type_conf}")
-    
+
     return ld
 # EOF

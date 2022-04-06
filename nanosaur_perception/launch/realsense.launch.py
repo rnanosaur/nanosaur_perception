@@ -59,7 +59,10 @@ def generate_launch_description():
 
     # Load nanosaur configuration and check if are included extra parameters
     conf = load_config(os.path.join(pkg_perception, 'param', 'robot.yml'))
-
+    # Load namespace from robot.yml
+    namespace_conf = os.getenv("HOSTNAME") if conf.get(
+        "multirobot", False) else "nanosaur"
+    
     conf_detector = ConfDetector(nanosaur_config_path)
 
     ############# ROS2 DECLARATIONS #############
