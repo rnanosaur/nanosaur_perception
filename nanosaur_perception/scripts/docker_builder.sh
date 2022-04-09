@@ -108,7 +108,6 @@ main()
                 ;;
             --latest)
                 LATEST=true
-                shift 1
                 ;;
             --push)
                 PUSH=true
@@ -127,9 +126,9 @@ main()
 
     # Build tag
     local TAG="$BRANCH_DISTRO"
+    local extension="${DOCKERFILE_NAME##*.}"
 
     if [[ $DOCKERFILE_NAME =~ (.*)?\.(.*) ]] ; then
-        local extension="${DOCKERFILE_NAME##*.}"
         TAG="$BRANCH_DISTRO-$extension"
     fi
 
@@ -170,9 +169,13 @@ main()
     fi
 
     if $LATEST ; then
-        echo "- Tag & Push ${bold}latest${reset} release from $REPO_NAME:$TAG"
-        docker tag $REPO_NAME:$TAG $REPO_NAME:latest
-        docker image push $REPO_NAME:latest
+        local latest_tag="latest"
+        if [ $DOCKERFILE_NAME != "Dockerfile" ] ; then
+            latest_tag="latest-$extension"
+        fi
+        echo "- Tag & Push ${bold}$latest_tag${reset} release from $REPO_NAME:$TAG"
+        docker tag $REPO_NAME:$TAG $REPO_NAME:$latest_tag
+        docker image push $REPO_NAME:$latest_tag
     fi
 }
 
