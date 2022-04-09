@@ -52,6 +52,8 @@ jobs:
         CHECK_PRE_RELEASE=$(python3 nanosaur_tools/CI/check_pre_release.py $TAG_RELEASE)
         echo ::set-output name=tag::${TAG_RELEASE}
         echo ::set-output name=pre_release::${CHECK_PRE_RELEASE}
+        echo "tag=${TAG_RELEASE}"
+        echo "pre_release=${CHECK_PRE_RELEASE}"
     - name: Test version packages
       if: startsWith(github.ref, 'refs/tags/')
       shell: bash
@@ -94,7 +96,7 @@ jobs:
         TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME --latest
 
   perception-camera:
-    needs: [matrix-builder, perception-base]
+    needs: [matrix-builder, test-pkgs, perception-base]
     runs-on: self-hosted
     strategy:
       matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
@@ -107,9 +109,9 @@ jobs:
       run: docker info
     - name: "Build docker ${{ matrix.project }}"
       run: |
-        echo "run ${{ matrix.project }}"
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
         FILE_NAME=${{ matrix.project }}
+        echo "run FILE_NAME=$FILE_NAME BRANCH_NAME=$BRANCH_NAME"
         TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh -ci --branch $BRANCH_NAME --dockerfile $FILE_NAME
     - name: Login to DockerHub
       uses: docker/login-action@v1.10.0 
