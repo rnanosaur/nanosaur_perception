@@ -23,7 +23,7 @@ jobs:
           echo ::set-output name=tag::${GITHUB_REF/refs\/heads\//}
         fi
     - name: Checkout
-      uses: actions/checkout@v2.4.0
+      uses: actions/checkout@v3
     - name: Docker info
       shell: bash
       run: docker info
@@ -34,7 +34,7 @@ jobs:
         BRANCH_NAME=${{ steps.extract_tag.outputs.tag }}
         TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh -ci --branch $BRANCH_NAME
     - name: Login to DockerHub
-      uses: docker/login-action@v1.10.0 
+      uses: docker/login-action@v1.14.1 
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
