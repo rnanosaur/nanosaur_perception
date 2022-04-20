@@ -52,7 +52,7 @@ jobs:
         else
           TAG_RELEASE=${GITHUB_REF/refs\/heads\//}
         fi
-        CHECK_PRE_RELEASE=$(python3 nanosaur_tools/CI/check_pre_release.py $TAG_RELEASE)
+        CHECK_PRE_RELEASE=$(python3 nanosaur_tools/check_pre_release.py $TAG_RELEASE)
         echo ::set-output name=tag::${TAG_RELEASE}
         echo ::set-output name=pre_release::${CHECK_PRE_RELEASE}
         echo "tag=${TAG_RELEASE}"
@@ -62,7 +62,7 @@ jobs:
       shell: bash
       run: |
         TAG_RELEASE=${{ steps.repo_status.outputs.tag }}
-        python3 nanosaur_tools/CI/version_tag_check.py $TAG_RELEASE
+        python3 nanosaur_tools/check_tag_version.py $TAG_RELEASE
 
   perception-base:
     name: "Build Dockerfile base"
