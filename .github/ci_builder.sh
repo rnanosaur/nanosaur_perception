@@ -56,6 +56,7 @@ main()
         local file_name="Dockerfile.$value"
         if [[ " ${skip_docker[*]} " =~ " ${value} " ]] ; then
             echo "${yellow}Skip $file_name${reset}"
+            i=$((i+1))
             continue
         fi
         echo "- $i Docker: ${green}$file_name${reset}"
