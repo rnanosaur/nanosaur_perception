@@ -37,6 +37,9 @@ main()
     local local_folder=$(pwd)
     local json_file="matrix.json"
 
+    # https://stackoverflow.com/questions/15901239/in-bash-how-do-you-see-if-a-string-is-not-in-an-array
+    local skip_docker=("x86")
+
     # find all docker to build
     local docker=$(find . -type f -name 'Dockerfile.*' | sed 's|.*\.||' | sort -u)
     local n_docker=$(echo "$docker" | wc -w)
@@ -51,6 +54,10 @@ main()
     for value in $docker
     do
         local file_name="Dockerfile.$value"
+        if [[ " ${skip_docker[*]} " =~ " ${value} " ]] ; then
+            echo "${yellow}Skip $file_name${reset}"
+            continue
+        fi
         echo "- $i Docker: ${green}$file_name${reset}"
 
         local separator=","
