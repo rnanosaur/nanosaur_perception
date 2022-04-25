@@ -66,7 +66,7 @@ jobs:
 
   perception-base:
     name: "Build Dockerfile base"
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, ARM64, Jetson]
     needs: [test-pkgs]
     steps:
     - name: Checkout
@@ -100,7 +100,7 @@ jobs:
 
   perception-camera:
     needs: [matrix-builder, test-pkgs, perception-base]
-    runs-on: self-hosted
+    runs-on: [self-hosted, linux, ARM64, Jetson]
     strategy:
       matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
     name: "Build ${{ matrix.project }}"
