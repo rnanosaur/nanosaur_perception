@@ -124,6 +124,11 @@ main()
             shift 1
     done
 
+    # Replace forward slash in branch name
+    # Happening in dependabot branches
+    # eg. dependabot/docker/nvidia/tritonserver-22.03-py3
+    BRANCH_DISTRO=$(echo $BRANCH_DISTRO | sed -e 's/\//-/g')
+
     # Build tag
     local TAG="$BRANCH_DISTRO"
     local extension="${DOCKERFILE_NAME##*.}"
