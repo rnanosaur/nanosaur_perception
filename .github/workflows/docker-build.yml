@@ -66,8 +66,8 @@ jobs:
 
   perception_x86:
     name: "Build Dockerfile for x86 machines"
-    runs-on: ubuntu-latest
-    needs: [self-hosted, linux, ARM64, Jetson]
+    runs-on: [self-hosted, linux, ARM64, Jetson]
+    needs: [test-pkgs]
     steps:
     # https://github.com/docker/build-push-action/blob/master/docs/advanced/tags-labels.md
     - name: Docker meta
