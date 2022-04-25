@@ -93,6 +93,7 @@ jobs:
       uses: docker/build-push-action@v2.10.0
       with:
         push: ${{ github.actor != 'dependabot[bot]' }}
+        file: Dockerfile.x86
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         platforms: linux/amd64
