@@ -78,7 +78,6 @@ RUN apt-get update && apt-get install -y \
     ros-${ROS_DISTRO}-rqt* \
     ros-${ROS_DISTRO}-turtlesim \
     ros-${ROS_DISTRO}-v4l2-camera \
-    ros-${ROS_DISTRO}-realsense2-camera \
     ros-${ROS_DISTRO}-vision-msgs \
     ros-${ROS_DISTRO}-pcl-conversions \
     ros-${ROS_DISTRO}-sensor-msgs-py \
@@ -119,3 +118,33 @@ RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
     colcon build --symlink-install \
     --cmake-args \
     -DCMAKE_BUILD_TYPE=Release
+
+################ NANOSAUR PKGS ####################
+
+# Download and build nanosaur_perception
+ENV ROS_WS /opt/ros_ws
+RUN mkdir -p ${ROS_WS}/src
+
+ADD . $ROS_WS/src/nanosaur_perception
+
+# Change workdir
+WORKDIR $ROS_WS
+
+# Build Isaac ROS
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
+    . $ISAAC_ROS_WS/install/setup.sh && \
+    colcon build --symlink-install \
+    --cmake-args \
+    -DCMAKE_BUILD_TYPE=Release
+
+################ Final enviroment setup ####################
+
+# Restore using the default Foxy DDS middleware: FastRTPS
+ENV RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+
+STOPSIGNAL SIGINT
+# source ros package from entrypoint
+#RUN sed --in-place --expression \
+#      '$isource "$ROS_WS/install/setup.bash"'
+# run ros package launch file
+CMD ["ros2", "launch", "nanosaur_perception", "perception.launch.py"]
