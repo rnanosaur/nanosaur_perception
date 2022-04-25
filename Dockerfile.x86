@@ -30,6 +30,26 @@ FROM nvcr.io/nvidia/tritonserver:21.08-py3
 # disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Fundamentals
+RUN apt-get update && apt-get install -y \
+    bash-completion \
+    build-essential \
+    clang-format \
+    cmake \
+    curl \
+    git \
+    gnupg2 \
+    locales \
+    lsb-release \
+    rsync \
+    software-properties-common \
+    wget \
+    vim \
+    unzip \
+    mlocate \
+	libgoogle-glog-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install Git-LFS and other packages
 RUN apt-get update && apt-get install -y \
     git-lfs \
@@ -38,6 +58,7 @@ RUN apt-get update && apt-get install -y \
 
 ################ INSTALL ROS ####################
 
+ENV ROS_DISTRO foxy
 # Setup ROS2 Foxy
 RUN locale-gen en_US en_US.UTF-8
 RUN update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
@@ -47,25 +68,27 @@ RUN curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt
 RUN sh -c 'echo "deb [arch=$(dpkg --print-architecture)] http://packages.ros.org/ros2/ubuntu $(lsb_release -cs) main" > /etc/apt/sources.list.d/ros2-latest.list'
 
 RUN apt-get update && apt-get install -y \
-        python3-colcon-common-extensions \
-        python3-rosdep \
-        python3-vcstool \
-        ros-foxy-camera-calibration-parsers \
-        ros-foxy-camera-info-manager \
-        ros-foxy-desktop \
-        ros-foxy-launch-testing-ament-cmake \
-        ros-foxy-rqt* \
-        ros-foxy-turtlesim \
-        ros-foxy-v4l2-camera \
-        ros-foxy-realsense2-camera \
-        ros-foxy-vision-msgs \
-        ros-foxy-pcl-conversions \
-        ros-foxy-sensor-msgs-py \
-        ros-foxy-stereo-image-proc \
-        ros-foxy-pcl-ros \
-&& rm -rf /var/lib/apt/lists/*
+    python3-colcon-common-extensions \
+    python3-rosdep \
+    python3-vcstool \
+    ros-${ROS_DISTRO}-camera-calibration-parsers \
+    ros-${ROS_DISTRO}-camera-info-manager \
+    ros-${ROS_DISTRO}-desktop \
+    ros-${ROS_DISTRO}-launch-testing-ament-cmake \
+    ros-${ROS_DISTRO}-rqt* \
+    ros-${ROS_DISTRO}-turtlesim \
+    ros-${ROS_DISTRO}-v4l2-camera \
+    ros-${ROS_DISTRO}-realsense2-camera \
+    ros-${ROS_DISTRO}-vision-msgs \
+    ros-${ROS_DISTRO}-pcl-conversions \
+    ros-${ROS_DISTRO}-sensor-msgs-py \
+    ros-${ROS_DISTRO}-stereo-image-proc \
+    ros-${ROS_DISTRO}-pcl-ros \
+    && rm -rf /var/lib/apt/lists/*
 
-################ INSTALL ISAAC ROS ####################
+RUN rosdep init
+
+################ DOWNLOAD ISAAC ROS ####################
 
 # Download and build nanosaur_isaac_ros
 ENV ISAAC_ROS_WS /opt/isaac_ros_ws
@@ -81,11 +104,18 @@ RUN apt-get update && \
 COPY nanosaur_perception/scripts/git_lfs_pull_ws.sh git_lfs_pull_ws.sh
 RUN TERM=xterm bash git_lfs_pull_ws.sh ${ISAAC_ROS_WS}/src
 
+# Install VPI packages
+RUN dpkg -i ${ISAAC_ROS_WS}/src/isaac_ros_common/docker/vpi/vpi-lib-1.1.11-cuda11-x86_64-linux.deb; \
+    dpkg -i ${ISAAC_ROS_WS}/src/isaac_ros_common/docker/vpi/vpi-dev-1.1.11-cuda11-x86_64-linux.deb; \
+    updatedb;
+
+################ INSTALL ISAAC ROS ####################
+
 # Change workdir
 WORKDIR $ISAAC_ROS_WS
 
 # Build Isaac ROS
-RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
+RUN . /opt/ros/$ROS_DISTRO/setup.sh && \
     colcon build --symlink-install \
     --cmake-args \
     -DCMAKE_BUILD_TYPE=Release
