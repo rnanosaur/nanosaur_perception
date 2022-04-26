@@ -50,6 +50,31 @@ RUN apt-get update && apt-get install -y \
 	libgoogle-glog-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Python basics
+RUN apt-get update && apt-get install -y \
+        python3-flake8 \
+        python3-opencv \
+        python3-pip \
+        python3-pytest-cov \
+        python3-setuptools \
+&& rm -rf /var/lib/apt/lists/*
+
+# Video utilities
+RUN apt-get update && apt-get install -y \
+        v4l-utils \
+        mesa-utils \
+        libcanberra-gtk-module \
+        libcanberra-gtk3-module \
+&& rm -rf /var/lib/apt/lists/*
+
+# Core dev libraries
+RUN apt-get update && apt-get install -y \
+        libasio-dev \
+        libbullet-dev \
+        libtinyxml2-dev \
+        libcunit1-dev \
+&& rm -rf /var/lib/apt/lists/*
+
 # Install Git-LFS and other packages
 RUN apt-get update && apt-get install -y \
     git-lfs \
@@ -104,8 +129,10 @@ COPY nanosaur_perception/scripts/git_lfs_pull_ws.sh git_lfs_pull_ws.sh
 RUN TERM=xterm bash git_lfs_pull_ws.sh ${ISAAC_ROS_WS}/src
 
 # Install VPI packages
-RUN dpkg -i ${ISAAC_ROS_WS}/src/isaac_ros_common/docker/vpi/vpi-lib-1.1.11-cuda11-x86_64-linux.deb; \
-    dpkg -i ${ISAAC_ROS_WS}/src/isaac_ros_common/docker/vpi/vpi-dev-1.1.11-cuda11-x86_64-linux.deb; \
+RUN mkdir -p /opt/install && \
+    mv ${ISAAC_ROS_WS}/src/isaac_ros_common/docker/vpi/*.deb /opt/install/ && \
+    dpkg -i /opt/install/vpi-lib-1.1.11-cuda11-x86_64-linux.deb; \
+    dpkg -i /opt/install/vpi-dev-1.1.11-cuda11-x86_64-linux.deb; \
     updatedb;
 
 ################ INSTALL ISAAC ROS ####################
