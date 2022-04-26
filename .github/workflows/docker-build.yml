@@ -146,37 +146,21 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    # https://github.com/docker/build-push-action/blob/master/docs/advanced/tags-labels.md
-    - name: Docker meta
-      id: meta
-      uses: docker/metadata-action@v3
-      with:
-        images: ${{ env.docker_image_name }}
-        # generate Docker tags based on the following events/attributes
-        tags: |
-          type=ref,event=branch
-          type=semver,pattern={{version}}
-          type=ref,event=tag
-    - name: Set up Docker Buildx
-      id: buildx
-      uses: docker/setup-buildx-action@v1
-      with:
-        install: true
+    - name: Docker info
+      shell: bash
+      run: docker info
+    - name: Build Docker
+      shell: bash
+      id: docker_build
+      run: |
+        BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
+        docker build -t --no-cache --pull ${{ env.docker_image_name }}:x86 -f Dockerfile.x86 .
     - name: Login to DockerHub
       if: github.actor != 'dependabot[bot]'
-      uses: docker/login-action@v1.14.1 
+      uses: docker/login-action@v1.10.0 
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Build and push
-      id: docker_build
-      uses: docker/build-push-action@v2.10.0
-      with:
-        push: ${{ github.actor != 'dependabot[bot]' }}
-        file: Dockerfile.x86
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        platforms: linux/amd64
 
   # https://github.com/peter-evans/dockerhub-description
   update_docker_description:
