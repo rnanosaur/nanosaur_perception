@@ -79,7 +79,7 @@ jobs:
       id: docker_build
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
-        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh -ci --branch $BRANCH_NAME
+        TERM=xterm bash nanosaur_perception/scripts/docker_jetson_builder.sh -ci --branch $BRANCH_NAME
     - name: Login to DockerHub
       if: github.actor != 'dependabot[bot]'
       uses: docker/login-action@v1.14.1 
@@ -92,13 +92,13 @@ jobs:
       id: docker_push
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
-        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME
+        TERM=xterm bash nanosaur_perception/scripts/docker_jetson_builder.sh --push --branch $BRANCH_NAME
     - name: Push Latest Docker
       if: startsWith(github.ref, 'refs/tags/') && needs.test-pkgs.outputs.pre_release == 'false'
       shell: bash
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
-        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME --latest
+        TERM=xterm bash nanosaur_perception/scripts/docker_jetson_builder.sh --push --branch $BRANCH_NAME --latest
 
   perception-camera:
     needs: [matrix-builder, test-pkgs, perception-base]
@@ -117,7 +117,7 @@ jobs:
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
         FILE_NAME=${{ matrix.project }}
         echo "run FILE_NAME=$FILE_NAME BRANCH_NAME=$BRANCH_NAME"
-        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh -ci --branch $BRANCH_NAME --dockerfile $FILE_NAME
+        TERM=xterm bash nanosaur_perception/scripts/docker_jetson_builder.sh -ci --branch $BRANCH_NAME --dockerfile $FILE_NAME
     - name: Login to DockerHub
       if: github.actor != 'dependabot[bot]'
       uses: docker/login-action@v1.10.0 
@@ -131,13 +131,13 @@ jobs:
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
         FILE_NAME=${{ matrix.project }}
-        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME --dockerfile $FILE_NAME
+        TERM=xterm bash nanosaur_perception/scripts/docker_jetson_builder.sh --push --branch $BRANCH_NAME --dockerfile $FILE_NAME
     - name: Push Latest Docker
       if: startsWith(github.ref, 'refs/tags/') && needs.test-pkgs.outputs.pre_release == 'false'
       shell: bash
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
-        TERM=xterm bash nanosaur_perception/scripts/docker_builder.sh --push --branch $BRANCH_NAME --dockerfile $FILE_NAME --latest
+        TERM=xterm bash nanosaur_perception/scripts/docker_jetson_builder.sh --push --branch $BRANCH_NAME --dockerfile $FILE_NAME --latest
 
   perception_x86:
     name: "Build Dockerfile for x86 machines"
@@ -154,13 +154,20 @@ jobs:
       id: docker_build
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
-        docker build --no-cache --pull -t ${{ env.docker_image_name }}:x86 -f Dockerfile.x86 .
+        TERM=xterm bash nanosaur_perception/scripts/docker_x86_builder.sh -ci --branch $BRANCH_NAME
     - name: Login to DockerHub
       if: github.actor != 'dependabot[bot]'
       uses: docker/login-action@v1.10.0 
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+    - name: Push Docker
+      if: github.actor != 'dependabot[bot]'
+      shell: bash
+      id: docker_push
+      run: |
+        BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
+        TERM=xterm bash nanosaur_perception/scripts/docker_x86_builder.sh --push --branch $BRANCH_NAME
 
   # https://github.com/peter-evans/dockerhub-description
   update_docker_description:
