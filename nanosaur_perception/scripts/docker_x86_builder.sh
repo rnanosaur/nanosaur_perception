@@ -54,8 +54,8 @@ main()
 {
     local PLATFORM="$(uname -m)"
     # Check if is running on NVIDIA Jetson platform
-    if [[ $PLATFORM != "aarch64" ]]; then
-        echo "${red}Run this script only on ${bold}${green}NVIDIA${reset}${red} Jetson platform${reset}"
+    if [[ $PLATFORM != "x86_64" ]]; then
+        echo "${red}Run this script only on ${bold}${green}x86_64 with NVIDIA${reset}${red} platform${reset}"
         exit 33
     fi
 
@@ -142,3 +142,6 @@ main()
     fi
 
 }
+
+main $@
+# EOF
