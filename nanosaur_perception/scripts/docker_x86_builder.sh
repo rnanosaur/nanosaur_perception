@@ -118,6 +118,11 @@ main()
 
     # Build tag
     local TAG="$BRANCH_DISTRO"
+    local extension="${DOCKERFILE_NAME##*.}"
+
+    if [[ $DOCKERFILE_NAME =~ (.*)?\.(.*) ]] ; then
+        TAG="$BRANCH_DISTRO-$extension"
+    fi
 
     if ! $PUSH ; then
         local CI_OPTIONS=""
