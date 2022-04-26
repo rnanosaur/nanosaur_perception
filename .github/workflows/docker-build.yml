@@ -174,7 +174,6 @@ jobs:
       with:
         push: ${{ github.actor != 'dependabot[bot]' }}
         file: Dockerfile.x86
-        load: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         platforms: linux/amd64
