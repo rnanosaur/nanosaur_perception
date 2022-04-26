@@ -154,7 +154,7 @@ jobs:
       id: docker_build
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
-        docker build -t --no-cache --pull ${{ env.docker_image_name }}:x86 -f Dockerfile.x86 .
+        docker build --no-cache --pull -t ${{ env.docker_image_name }}:x86 -f Dockerfile.x86 .
     - name: Login to DockerHub
       if: github.actor != 'dependabot[bot]'
       uses: docker/login-action@v1.10.0 
