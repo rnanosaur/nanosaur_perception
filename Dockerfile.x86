@@ -30,6 +30,9 @@ FROM nvcr.io/nvidia/tritonserver:22.03-py3
 # disable terminal interaction for apt
 ENV DEBIAN_FRONTEND=noninteractive
 
+ # Fundamentals
+RUN apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/3bf863cc.pub
+
 # Fundamentals
 RUN apt-get update && apt-get install -y \
     bash-completion \
