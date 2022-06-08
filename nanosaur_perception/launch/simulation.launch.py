@@ -110,20 +110,20 @@ def generate_launch_description():
                     'input_left_camera_frame': 'camera_infra1_frame',
                     'input_right_camera_frame': 'camera_infra2_frame'
                     }],
-        remappings=[('stereo_camera/left/image', 'infra1/image_rect_raw'),
+        remappings=[('stereo_camera/left/image', 'infra1/image_raw'),
                     ('stereo_camera/left/camera_info', 'infra1/camera_info'),
-                    ('stereo_camera/right/image', 'infra2/image_rect_raw'),
+                    ('stereo_camera/right/image', 'infra2/image_raw'),
                     ('stereo_camera/right/camera_info', 'infra2/camera_info'),
                     ('tf', '/tf')]
     )
 
     nodes = [visual_slam_node]
-    if conf.get("apriltag", True):
+    if conf.get("apriltag", False):
         nodes += [apriltag_node]
 
     visual_odometry_launch_container = ComposableNodeContainer(
         name='visual_odometry_launch_container',
-        namespace='camera',
+        namespace=namespace_camera,
         package='rclcpp_components',
         executable='component_container',
         composable_node_descriptions=nodes,
