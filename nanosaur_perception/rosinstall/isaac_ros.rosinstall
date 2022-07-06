@@ -1,18 +1,24 @@
 - git:
     local-name: image_manipulator
+    version: v0.9.3-ea3
     uri: https://github.com/gbr1/image_manipulator.git
 - git:
     local-name: isaac_ros_common
+    version: v0.9.3-ea3
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common.git
 - git:
     local-name: isaac_ros_image_pipeline
+    version: v0.9.3-ea3
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_image_pipeline.git
 - git:
     local-name: isaac_ros_apriltag
+    version: v0.9.3-ea3
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_apriltag.git
 - git:
     local-name: isaac_ros_argus_camera
+    version: v0.9.3-ea3
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_argus_camera.git
 - git:
     local-name: isaac_ros_visual_slam
+    version: v0.9.3-ea3
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_visual_slam.git
