@@ -1,6 +1,5 @@
 - git:
     local-name: image_manipulator
-    version: v0.9.3-ea3
     uri: https://github.com/gbr1/image_manipulator.git
 - git:
     local-name: isaac_ros_common
