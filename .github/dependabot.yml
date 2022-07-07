@@ -6,7 +6,7 @@ updates:
     interval: daily
   open-pull-requests-limit: 10
   ignore:
-  - dependency-name: "tritonserver"
+  - dependency-name: "nvcr.io/nvidia/tritonserver"
 - package-ecosystem: "github-actions"
   directory: "/"
   schedule:
