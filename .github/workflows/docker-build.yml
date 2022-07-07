@@ -137,6 +137,7 @@ jobs:
       shell: bash
       run: |
         BRANCH_NAME=${{ needs.test-pkgs.outputs.tag }}
+        FILE_NAME=${{ matrix.project }}
         TERM=xterm bash nanosaur_perception/scripts/docker_jetson_builder.sh --push --branch $BRANCH_NAME --dockerfile $FILE_NAME --latest
 
   perception_x86:

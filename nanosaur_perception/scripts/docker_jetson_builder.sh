@@ -178,7 +178,7 @@ main()
         if [ $DOCKERFILE_NAME != "Dockerfile" ] ; then
             latest_tag="latest-$extension"
         fi
-        echo "- Tag & Push ${bold}$latest_tag${reset} release from $REPO_NAME:$TAG"
+        echo "- Tag & Push ${bold}${green}$latest_tag${reset} release from ${bold}${green}$REPO_NAME:$TAG${reset}"
         docker tag $REPO_NAME:$TAG $REPO_NAME:$latest_tag
         docker image push $REPO_NAME:$latest_tag
     fi
