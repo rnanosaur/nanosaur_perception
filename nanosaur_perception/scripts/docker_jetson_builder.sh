@@ -153,7 +153,7 @@ main()
         fi
 
         
-        local BUILD_ARG="--build-arg"
+        local BUILD_ARG=""
         # Add tag for release
         if [ "$DOCKERFILE_NAME" = "Dockerfile" ] ; then
             BUILD_ARG="$BUILD_ARG DPKG_STATUS=$DPKG_STATUS"
@@ -165,6 +165,7 @@ main()
             echo "- ${yellow}Override base image with $BASE_IMAGE${reset}"
             BUILD_ARG="$BUILD_ARG BASE_IMAGE=$BASE_IMAGE"
         fi
+        BUILD_ARG="--build-arg $BUILD_ARG"
 
         echo "- Build Dockerfile ${bold}$DOCKERFILE_NAME${reset} with name ${green}$REPO_NAME:$TAG${reset}"
         if ! $TEST ; then
