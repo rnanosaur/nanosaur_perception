@@ -152,16 +152,23 @@ main()
             CI_OPTIONS="--no-cache --pull"
         fi
 
+        
+        local BUILD_ARG="--build-arg"
+        # Add tag for release
+        if [ "$DOCKERFILE_NAME" = "Dockerfile" ] ; then
+            BUILD_ARG="$BUILD_ARG DPKG_STATUS=$DPKG_STATUS"
+        else
+            BUILD_ARG="$BUILD_ARG TAG_IMAGE=$BRANCH_DISTRO"
+        fi
         # Change base image
-        local BASE_IMAGE_ARG=""
         if [ ! -z "$BASE_IMAGE" ] ; then
             echo "- ${yellow}Override base image with $BASE_IMAGE${reset}"
-            BASE_IMAGE_ARG="--build-arg BASE_IMAGE=$BASE_IMAGE"
+            BUILD_ARG="$BUILD_ARG BASE_IMAGE=$BASE_IMAGE"
         fi
 
         echo "- Build Dockerfile ${bold}$DOCKERFILE_NAME${reset} with name ${green}$REPO_NAME:$TAG${reset}"
         if ! $TEST ; then
-            docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" -f $DOCKERFILE_NAME $BASE_IMAGE_ARG . || { echo "${red}docker build failure!${reset}"; exit 1; }
+            docker build $CI_OPTIONS -t $REPO_NAME:$TAG $BUILD_ARG -f $DOCKERFILE_NAME . || { echo "${red}docker build failure!${reset}"; exit 1; }
         fi
 
         if $CI_BUILD ; then
