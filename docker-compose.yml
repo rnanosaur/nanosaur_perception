@@ -31,9 +31,9 @@ services:
     privileged: true
     environment:
       - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
-      - NANOSAUR_COVER_TYPE=${NANOSAUR_COVER_TYPE}
+      - NANOSAUR_COVER_TYPE=${NANOSAUR_COVER_TYPE:-fisheye}
       - RMW_IMPLEMENTATION=${NANOSAUR_RMW:-rmw_cyclonedds_cpp}
     volumes:
       # if you want change the nanosaur configuration
       # Read https://github.com/rnanosaur/nanosaur/wiki/configuration
-      - "/opt/nanosaur/param:/opt/ros_ws/install/nanosaur_perception/share/nanosaur_perception/param" # Extra configuration folder
+      - "/opt/nanosaur/param:/opt/ros_ws/install/share/nanosaur_perception/param" # Extra configuration folder

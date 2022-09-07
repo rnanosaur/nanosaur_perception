@@ -155,7 +155,7 @@ WORKDIR $ROS_WS
 # Build Isaac ROS
 RUN . /opt/ros/$ROS_DISTRO/install/setup.sh && \
     . $ISAAC_ROS_WS/install/setup.sh && \
-    colcon build --symlink-install \
+    colcon build --symlink-install --merge-install \
     --cmake-args \
     -DCMAKE_BUILD_TYPE=Release
 
