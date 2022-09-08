@@ -116,6 +116,12 @@ RUN apt-get update && \
         /usr/bin/g++-8 8 && \
     rm -rf /var/lib/apt/lists/*
 
+# https://github.com/dusty-nv/jetson-containers/issues/181
+# https://github.com/dusty-nv/jetson-containers/pull/183
+RUN apt-get update -y && \
+    apt-get install -y --allow-downgrades cmake-data=3.23.2-0kitware1ubuntu18.04.1 cmake=3.23.2-0kitware1ubuntu18.04.1 && apt-mark hold cmake cmake-data && \
+    rm -rf /var/lib/apt/lists/*
+
 ################ INSTALL ISAAC ROS ####################
 
 # Download and build nanosaur_isaac_ros
