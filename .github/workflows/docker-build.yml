@@ -5,8 +5,9 @@ name: nanosaur_perception builder
 # https://jasonet.co/posts/scheduled-actions/
 on:
   push:
-    branches:
-      - '!humble'
+    # Sequence of patterns matched against refs/heads
+    branches-ignore:
+      - 'humble'
   workflow_dispatch:
 
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency
