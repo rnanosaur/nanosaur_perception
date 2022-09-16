@@ -3,7 +3,11 @@ name: nanosaur_perception builder
 # Reference:
 # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#on
 # https://jasonet.co/posts/scheduled-actions/
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches:
+      - '!humble'
+  workflow_dispatch:
 
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency
 concurrency:
@@ -66,7 +70,7 @@ jobs:
 
   perception-base:
     name: "Build Dockerfile base"
-    runs-on: [self-hosted, linux, ARM64, Jetson]
+    runs-on: [self-hosted, linux, ARM64, Jetson, L4T-35]
     needs: [test-pkgs]
     steps:
     - name: Checkout
