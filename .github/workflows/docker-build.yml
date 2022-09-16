@@ -48,6 +48,11 @@ jobs:
       with:
         repository: rnanosaur/nanosaur_tools
         path: nanosaur_tools
+    - name: Required L4T
+      id: jetson_variables
+      shell: bash
+      run: |
+        echo ::set-output name=L4T::${{ env.jetson_L4T }}
     - name: Repository status
       id: repo_status
       shell: bash
@@ -72,13 +77,13 @@ jobs:
 
   perception-base:
     name: "Build Dockerfile base"
+    needs: [test-pkgs]
     runs-on:
       - self-hosted
       - linux
       - ARM64
       - Jetson
-      - ${{ env.jetson_L4T }}
-    needs: [test-pkgs]
+      - ${{ needs.test-pkgs.outputs.jetson_variables.L4T }}
     steps:
     - name: Checkout
       uses: actions/checkout@v3
