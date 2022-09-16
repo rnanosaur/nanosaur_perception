@@ -17,7 +17,6 @@ concurrency:
 
 env:
   docker_image_name: nanosaur/perception
-  jetson_L4T: L4T-32
 
 jobs:
   matrix-builder:
@@ -48,12 +47,6 @@ jobs:
       with:
         repository: rnanosaur/nanosaur_tools
         path: nanosaur_tools
-    - name: Required L4T
-      id: jetson_variables
-      shell: bash
-      run: |
-        # https://github.com/actions/runner/issues/480
-        echo "::set-output name=jetson_L4T::${{ env.jetson_L4T }}"
     - name: Repository status
       id: repo_status
       shell: bash
@@ -79,12 +72,7 @@ jobs:
   perception-base:
     name: "Build Dockerfile base"
     needs: [test-pkgs]
-    runs-on:
-      - self-hosted
-      - linux
-      - ARM64
-      - Jetson
-      - ${{ needs.test-pkgs.outputs.jetson_L4T }}
+    runs-on: [self-hosted, linux, ARM64, Jetson, L4T-32]
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -119,12 +107,7 @@ jobs:
 
   perception-camera:
     needs: [matrix-builder, test-pkgs, perception-base]
-    runs-on:
-      - self-hosted
-      - linux
-      - ARM64
-      - Jetson
-      - ${{ needs.test-pkgs.outputs.jetson_L4T }}
+    runs-on: [self-hosted, linux, ARM64, Jetson, L4T-32]
     strategy:
       matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
     name: "Build ${{ matrix.project }}"
