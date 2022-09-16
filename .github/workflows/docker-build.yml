@@ -71,7 +71,7 @@ jobs:
 
   perception-base:
     name: "Build Dockerfile base"
-    runs-on: ${{ env.jetson_L4T }}
+    runs-on: [self-hosted, ${{ env.jetson_L4T }}]
     needs: [test-pkgs]
     steps:
     - name: Checkout
