@@ -53,7 +53,7 @@ jobs:
       shell: bash
       run: |
         # https://github.com/actions/runner/issues/480
-        echo ::set-output name=jetson_L4T::${{ env.jetson_L4T }}
+        echo "::set-output name=jetson_L4T::${{ env.jetson_L4T }}"
     - name: Repository status
       id: repo_status
       shell: bash
@@ -84,7 +84,7 @@ jobs:
       - linux
       - ARM64
       - Jetson
-      - ${{ needs.test-pkgs.outputs.jetson_L4T }}
+      - '${{ needs.test-pkgs.outputs.jetson_L4T }}'
     steps:
     - name: Checkout
       uses: actions/checkout@v3
@@ -124,7 +124,7 @@ jobs:
       - linux
       - ARM64
       - Jetson
-      - ${{ needs.test-pkgs.outputs.jetson_L4T }}
+      - '${{ needs.test-pkgs.outputs.jetson_L4T }}'
     strategy:
       matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
     name: "Build ${{ matrix.project }}"
