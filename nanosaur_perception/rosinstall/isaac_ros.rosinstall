@@ -8,14 +8,17 @@
     local-name: isaac_ros_common
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_common.git
 - git:
+    local-name: isaac_ros_nitros
+    uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_nitros.git
+- git:
     local-name: isaac_ros_image_pipeline
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_image_pipeline.git
 - git:
     local-name: isaac_ros_apriltag
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_apriltag.git
 - git:
-    local-name: isaac_ros_argus_camera
-    uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_argus_camera.git
-- git:
     local-name: isaac_ros_visual_slam
     uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_visual_slam.git
+- git:
+    local-name: isaac_ros_argus_camera
+    uri: https://github.com/NVIDIA-ISAAC-ROS/isaac_ros_argus_camera.git
