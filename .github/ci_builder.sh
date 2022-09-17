@@ -38,37 +38,47 @@ main()
     local json_file="matrix.json"
 
     # https://stackoverflow.com/questions/15901239/in-bash-how-do-you-see-if-a-string-is-not-in-an-array
-    local skip_docker=("x86")
+    local skip_docker=("x86" "realsense" "zed")
 
     # find all docker to build
     local docker=$(find . -type f -name 'Dockerfile.*' | sed 's|.*\.||' | sort -u)
     local n_docker=$(echo "$docker" | wc -w)
 
-    echo "There are ${green}$n_docker docker${reset} to build in the current path"
+    echo " - There are ${yellow}$n_docker docker${reset} in this repository"
 
     # https://github.blog/changelog/2020-04-15-github-actions-new-workflow-features/
     # https://docs.github.com/en/actions/learn-github-actions/expressions#fromjson
     echo -n "{\"include\":[" > $json_file
     # Worker to build all docker file
     local i=1
+    local images=""
     for value in $docker
     do
         local file_name="Dockerfile.$value"
         if [[ " ${skip_docker[*]} " =~ " ${value} " ]] ; then
             echo "${yellow}Skip $file_name${reset}"
-            i=$((i+1))
             continue
         fi
-        echo "- $i Docker: ${green}$file_name${reset}"
+        images="$images $file_name"
+    done
 
-        local separator=","
-        if [ $i = $n_docker ] ; then
-            separator="]"
+    local matrix="{\"include\":["
+    local i=1
+    local n_docker=$(echo "$images" | wc -w)
+
+    echo " - ${green}$n_docker docker${reset} to build in the current path"
+    for image in $images
+    do
+        matrix="$matrix{\"project\": \"$(basename $image)\"}"
+        echo "- $i Docker: ${green}$file_name${reset}"
+        if [ $i != $n_docker ] ; then
+            matrix="$matrix,"
         fi
-        echo -n "{\"project\": \"$(basename $file_name)\"}$separator" >> $json_file
         i=$((i+1))
     done
-    echo -n "}" >> $json_file
+    matrix="$matrix]}"
+
+    echo $matrix > $json_file
 
 }
 

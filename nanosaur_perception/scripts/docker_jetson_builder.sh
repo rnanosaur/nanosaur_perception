@@ -30,14 +30,6 @@ green=`tput setaf 2`
 yellow=`tput setaf 3`
 reset=`tput sgr0`
 
-# Get the entry in the dpkg status file corresponding to the provied package name
-# Prepend two newlines so it can be safely added to the end of any existing
-# dpkg/status file.
-get_dpkg_status() {
-    echo -e "\n"
-    awk '/Package: '"$1"'/,/^$/' /var/lib/dpkg/status
-}
-
 usage()
 {
     if [ "$1" != "" ]; then
@@ -49,7 +41,6 @@ usage()
     echo "" >&2
     echo "Commands:" >&2
     echo "  -v                      |  Verbose. Schow extra info " >&2
-    echo "  --test                  |  Show output commands without build nothing. ONLY TEST " >&2
     echo "  -ci                     |  Build docker without cache " >&2
     echo "  --push                  |  Push docker. Need to be logged in " >&2
     echo "  --latest                |  Tag and push latest release" >&2
@@ -73,9 +64,8 @@ main()
     local REPO_NAME="nanosaur/perception"
     local DOCKERFILE_NAME="Dockerfile"
     local CI_BUILD=false
-    local BRANCH_DISTRO="foxy"
+    local BRANCH_DISTRO="humble"
     local LATEST=false
-    local TEST=false
     # Base image
     local BASE_IMAGE=""
 	# Decode all information from startup
@@ -87,9 +77,6 @@ main()
                 ;;
             -v)
                 VERBOSE=true
-                ;;
-            --test)
-                TEST=true
                 ;;
             -ci)
                 CI_BUILD=true
@@ -138,13 +125,6 @@ main()
     fi
 
     if ! $PUSH ; then
-        echo "- Extract Libraries info"
-        local DPKG_STATUS=$(get_dpkg_status cuda-cudart-10-2)$(get_dpkg_status libcufft-10-2)
-        if $VERBOSE ; then
-            echo "${yellow} Libraries ${reset}"
-            echo "$DPKG_STATUS"
-        fi
-
         local CI_OPTIONS=""
         if $CI_BUILD ; then
             # Set no-cache and pull before build
@@ -165,9 +145,7 @@ main()
         fi
 
         echo "- Build Dockerfile ${bold}$DOCKERFILE_NAME${reset} with name ${green}$REPO_NAME:$TAG${reset}"
-        if ! $TEST ; then
-            docker build $CI_OPTIONS -t $REPO_NAME:$TAG --build-arg "DPKG_STATUS=$DPKG_STATUS" -f $DOCKERFILE_NAME $BUILD_ARG . || { echo "${red}docker build failure!${reset}"; exit 1; }
-        fi
+        docker build $CI_OPTIONS -t $REPO_NAME:$TAG -f $DOCKERFILE_NAME $BUILD_ARG . || { echo "${red}docker build failure!${reset}"; exit 1; }
 
         if $CI_BUILD ; then
             echo "- ${bold}Prune${reset} old docker images"

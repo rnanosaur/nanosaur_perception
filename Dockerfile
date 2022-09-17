@@ -23,104 +23,14 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# Jetpack 4.6.1
-# Docker file for aarch64 based Jetson device
-FROM dustynv/ros:foxy-ros-base-l4t-r32.7.1
+# Isaac ROS Dev Base
+# https://catalog.ngc.nvidia.com/orgs/nvidia/teams/isaac/containers/ros
+FROM nvcr.io/nvidia/isaac/ros:aarch64-humble-nav2_35120f31b84976ec36009722e16f1524
 # L4T variables
-ENV L4T=32.7
-ENV L4T_MINOR_VERSION=7.1
+ENV L4T=35.1
+ENV L4T_MINOR_VERSION=1.0
 # Configuration CUDA
 ENV CUDA=10.2
-
-# Disable terminal interaction for apt
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install OpenCV dependencies
-RUN apt-get update && apt-get install -y \
-    libavformat-dev \
-    libjpeg-dev \
-    libopenjp2-7-dev \
-    libpng-dev \
-    libpq-dev \
-    libswscale-dev \
-    libtbb2 \
-    libtbb-dev \
-    libtiff-dev \
-    pkg-config \
-    yasm && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install additional packages needed for ROS2 dependencies
-RUN apt-get update && apt-get install -y \
-    python3-distutils \
-    libboost-all-dev \
-    libboost-dev \
-    libpcl-dev \
-    libode-dev \
-    lcov \
-    python3-zmq \
-    libxaw7-dev \
-    libgraphicsmagick++1-dev \
-    graphicsmagick-libmagick-dev-compat \
-    libceres-dev \
-    libsuitesparse-dev \
-    libncurses5-dev \
-    libassimp-dev \
-    libyaml-cpp-dev \
-    libpcap-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install Git-LFS and other packages
-RUN apt-get update && apt-get install -y \
-    git-lfs \
-    software-properties-common && \
-    rm -rf /var/lib/apt/lists/*
-
-# Fix cuda info
-ARG DPKG_STATUS
-# Add nvidia repo/public key and install VPI libraries
-RUN echo "$DPKG_STATUS" >> /var/lib/dpkg/status && \
-    curl https://repo.download.nvidia.com/jetson/jetson-ota-public.asc > /etc/apt/trusted.gpg.d/jetson-ota-public.asc && \
-    echo "deb https://repo.download.nvidia.com/jetson/common r${L4T} main" >> /etc/apt/sources.list.d/nvidia-l4t-apt-source.list && \
-    apt-get update && apt-get install -y libnvvpi1 vpi1-dev && \
-    rm -rf /var/lib/apt/lists/*
-
-# Update environment
-ENV LD_LIBRARY_PATH="/opt/nvidia/vpi1/lib64:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/local/cuda-${CUDA}/targets/aarch64-linux/lib:${LD_LIBRARY_PATH}"
-ENV LD_LIBRARY_PATH="/usr/lib/aarch64-linux-gnu/tegra-egl:${LD_LIBRARY_PATH}"
-
-# Install pcl_conversions & sensor_msgs_py
-COPY nanosaur_perception/rosinstall/isaac_ros_fix.rosinstall isaac_ros_fix.rosinstall
-
-RUN mkdir -p ${ROS_ROOT}/src && \
-    vcs import ${ROS_ROOT}/src < isaac_ros_fix.rosinstall && \
-    . /opt/ros/$ROS_DISTRO/install/setup.sh && \
-    cd ${ROS_ROOT} && \
-    rosdep install -y --ignore-src --from-paths src --rosdistro foxy && \
-    colcon build --merge-install --packages-up-to pcl_conversions sensor_msgs_py diagnostic_updater xacro && \
-    rm -Rf src logs build
-
-# Install gcc8 for cross-compiled binaries from Ubuntu 20.04
-RUN apt-get update && \
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    apt-get install -y gcc-8 g++-8 libstdc++6 && \
-    update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 8 && \
-    update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 8 && \
-    rm -rf /usr/bin/aarch64-linux-gnu-gcc /usr/bin/aarch64-linux-gnu-g++ \
-        /usr/bin/aarch64-linux-gnu-g++-7 /usr/bin/aarch64-linux-gnu-gcc-7 && \
-    update-alternatives --install /usr/bin/aarch64-linux-gnu-gcc aarch64-linux-gnu-gcc \
-        /usr/bin/gcc-8 8 && \
-    update-alternatives --install /usr/bin/aarch64-linux-gnu-g++ aarch64-linux-gnu-g++ \
-        /usr/bin/g++-8 8 && \
-    rm -rf /var/lib/apt/lists/*
-
-# https://github.com/dusty-nv/jetson-containers/issues/181
-# https://github.com/dusty-nv/jetson-containers/pull/183
-RUN apt-get update -y && \
-    apt-get install -y --allow-downgrades cmake-data=3.23.2-0kitware1ubuntu18.04.1 cmake=3.23.2-0kitware1ubuntu18.04.1 && apt-mark hold cmake cmake-data && \
-    rm -rf /var/lib/apt/lists/*
 
 ################ INSTALL ISAAC ROS ####################
 
@@ -129,9 +39,7 @@ ENV ISAAC_ROS_WS /opt/isaac_ros_ws
 # Copy wstool isaac_ros.rosinstall
 COPY nanosaur_perception/rosinstall/isaac_ros.rosinstall isaac_ros.rosinstall
 
-RUN apt-get update && \
-    apt-get install python3-vcstool python3-pip -y && \
-    mkdir -p ${ISAAC_ROS_WS}/src && \
+RUN mkdir -p ${ISAAC_ROS_WS}/src && \
     vcs import ${ISAAC_ROS_WS}/src < isaac_ros.rosinstall && \
     rm -rf /var/lib/apt/lists/*
 # Pull LFS files
