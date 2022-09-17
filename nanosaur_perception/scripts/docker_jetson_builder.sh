@@ -132,7 +132,6 @@ main()
             CI_OPTIONS="--no-cache --pull"
         fi
 
-        
         local BUILD_ARG=""
         # Add tag for release
         if [ "$DOCKERFILE_NAME" != "Dockerfile" ] ; then
