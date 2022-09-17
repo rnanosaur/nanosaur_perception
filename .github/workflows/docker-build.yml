@@ -5,8 +5,9 @@ name: nanosaur_perception builder
 # https://jasonet.co/posts/scheduled-actions/
 on:
   push:
-    branches:
-      - '!humble'
+    # Sequence of patterns matched against refs/heads
+    branches-ignore:
+      - 'humble'
   workflow_dispatch:
 
 # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#concurrency
@@ -70,7 +71,7 @@ jobs:
 
   perception-base:
     name: "Build Dockerfile base"
-    runs-on: [self-hosted, linux, ARM64, Jetson, L4T-35]
+    runs-on: [self-hosted, linux, ARM64, Jetson, L4T-35.1]
     needs: [test-pkgs]
     steps:
     - name: Checkout
@@ -106,13 +107,13 @@ jobs:
 
   perception-camera:
     needs: [matrix-builder, test-pkgs, perception-base]
-    runs-on: [self-hosted, linux, ARM64, Jetson]
+    runs-on: [self-hosted, linux, ARM64, Jetson, L4T-35.1]
     strategy:
       matrix: ${{fromJson(needs.matrix-builder.outputs.matrix)}} #variable: project
     name: "Build ${{ matrix.project }}"
     steps:
     - name: Checkout
-      uses: actions/checkout@v2.4.0
+      uses: actions/checkout@v3
     - name: Docker info
       shell: bash
       run: docker info
