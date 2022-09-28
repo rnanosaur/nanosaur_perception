@@ -93,7 +93,7 @@ def generate_launch_description():
                 'accel_optical_frame_id': 'camera_accel_optical_frame',
                 'infra_height': 360,
                 'infra_width': 640,
-                'enable_color': False,
+                'enable_color': True,
                 'enable_depth': False,
                 'stereo_module.emitter_enabled': 2, #https://github.com/IntelRealSense/realsense-ros/issues/817
                 'infra_fps': 90.0,
