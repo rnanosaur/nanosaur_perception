@@ -25,7 +25,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Extract matrix
       id: set-matrix
       run: |
@@ -41,9 +41,9 @@ jobs:
       pre_release: ${{ steps.repo_status.outputs.pre_release }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Checkout nanosaur tools repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         repository: rnanosaur/nanosaur_tools
         path: nanosaur_tools
@@ -75,7 +75,7 @@ jobs:
     runs-on: [self-hosted, linux, ARM64, Jetson, L4T-32.7]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Docker info
       shell: bash
       run: docker info
@@ -113,7 +113,7 @@ jobs:
     name: "Build ${{ matrix.project }}"
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Docker info
       shell: bash
       run: docker info
@@ -151,7 +151,7 @@ jobs:
     needs: [test-pkgs]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Docker info
       shell: bash
       run: docker info
@@ -183,7 +183,7 @@ jobs:
     needs: [perception-camera, perception_x86]
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     - name: Docker Hub Description
       uses: peter-evans/dockerhub-description@v3
       with:
