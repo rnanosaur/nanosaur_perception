@@ -204,7 +204,7 @@ jobs:
       shell: bash
       run: echo ::set-output name=tag::${GITHUB_REF/refs\/tags\//}
     - name: Release # https://github.com/softprops/action-gh-release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag_name: ${{ github.ref }}
