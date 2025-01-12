@@ -29,3 +29,5 @@ jobs:
 
     - name: Build Docker image
       run: ./nanosaur_build.sh
+
+      
