@@ -1,0 +1,18 @@
+version: "3.8"
+services:
+  isaac_ros_dev:
+    image: nanosaur:latest
+    volumes:
+      - /run/jtop.sock:/run/jtop.sock:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ~/.Xauthority:/home/admin/.Xauthority:rw
+    environment:
+      - DISPLAY=${DISPLAY}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+    runtime: nvidia
+    network_mode: host
+    ipc: host
+    privileged: true
+    stdin_open: true
+    tty: true

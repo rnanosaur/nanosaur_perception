@@ -1,5 +1,4 @@
-#!/bin/bash
-# Copyright (C) 2022, Raffaello Bonghi <raffaello@rnext.it>
+# Copyright (C) 2024, Raffaello Bonghi <raffaello@rnext.it>
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -24,31 +23,20 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-bold=`tput bold`
-red=`tput setaf 1`
-green=`tput setaf 2`
-yellow=`tput setaf 3`
-reset=`tput sgr0`
+# https://nvidia-isaac-ros.github.io/concepts/docker_devenv/index.html#development-environment
+
+ARG BASE_IMAGE
+FROM ${BASE_IMAGE}
 
 
-main()
-{
-    local local_folder=$1
+RUN sudo apt-get update && \
+    pip3 install -U jetson-stats && \
+    sudo apt-get install -y ros-humble-isaac-ros-jetson-stats && \
+    rm -rf /var/lib/apt/lists/*
 
-    if [[ -z $local_folder ]] ; then
-        echo "${red}Please write a folder you want git lfs pull${reset}"
-        exit 33
-    fi
 
-    # Build a list of folder available
-    for d in $local_folder/*/
-    do
-        local folder="${d%/}"
-        echo "git-lfs: $folder"
-        cd $folder
-        git lfs pull
-    done
-}
-
-main $@
-# EOF
+# https://docs.docker.com/engine/reference/builder/#stopsignal
+# https://hynek.me/articles/docker-signals/
+STOPSIGNAL SIGINT
+# run ros package launch file
+#CMD ["ros2", "launch", "isaac_ros_jetson_stats", "jtop.launch.py"]
