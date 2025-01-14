@@ -1,8 +1,0 @@
-- git:
-    local-name: nanosaur
-    version: foxy
-    uri: https://github.com/rnanosaur/nanosaur.git
-- git:
-    local-name: nanosaur_perception
-    version: foxy
-    uri: https://github.com/rnanosaur/nanosaur_perception.git

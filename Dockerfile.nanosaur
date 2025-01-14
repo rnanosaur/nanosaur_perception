@@ -1,4 +1,4 @@
-# Copyright (C) 2024, Raffaello Bonghi <raffaello@rnext.it>
+# Copyright (C) 2025, Raffaello Bonghi <raffaello@rnext.it>
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -28,15 +28,29 @@
 ARG BASE_IMAGE
 FROM ${BASE_IMAGE}
 
+ARG WORKSPACE_DIR=/nanosaur_ws
 
 RUN sudo apt-get update && \
     pip3 install -U jetson-stats && \
     sudo apt-get install -y ros-humble-isaac-ros-jetson-stats && \
     rm -rf /var/lib/apt/lists/*
 
+# Copy the repository
+COPY . ${WORKSPACE_DIR}/src/nanosaur_perception
+
+# Set the working directory
+WORKDIR ${WORKSPACE_DIR}
+
+# Install dependencies
+RUN rosdep update && \
+    rosdep install --from-paths src --ignore-src -r -y
+
+# Compile the workspace
+RUN source ${ROS_ROOT:?}/setup.bash && colcon build --symlink-install --merge-install
 
 # https://docs.docker.com/engine/reference/builder/#stopsignal
 # https://hynek.me/articles/docker-signals/
 STOPSIGNAL SIGINT
-# run ros package launch file
-#CMD ["ros2", "launch", "isaac_ros_jetson_stats", "jtop.launch.py"]
+
+# Set the ROS workspace environment variables
+ENV ROS_WS=${WORKSPACE_DIR}

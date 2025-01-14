@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2024, Raffaello Bonghi <raffaello@rnext.it>
+# Copyright (C) 2025, Raffaello Bonghi <raffaello@rnext.it>
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions are met:
@@ -78,7 +78,11 @@ cd isaac_ros_common
 # ./scripts/build_image_layers.sh --context_dir $LOCAL_DIR --image_key "$BASE_IMAGE_KEY" # --image_name "$PLATFORM-nanosaur"
 
 # Deploy the image with the launch package
-./scripts/docker_deploy.sh --base_image_key $BASE_IMAGE_KEY --launch_package "isaac_ros_jetson_stats" --launch_file "jtop.launch.py" --name "nanosaur"
+./scripts/docker_deploy.sh \
+    --base_image_key $BASE_IMAGE_KEY \
+    --launch_package "nanosaur_perception" \
+    --launch_file "perception.launch.py" \
+    --name "nanosaur"
 
 cd $LOCAL_DIR
 # EOF
