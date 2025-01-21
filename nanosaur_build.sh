@@ -77,6 +77,8 @@ cd isaac_ros_common
 # Not sure if this is necessary
 # ./scripts/build_image_layers.sh --context_dir $LOCAL_DIR --image_key "$BASE_IMAGE_KEY" # --image_name "$PLATFORM-nanosaur"
 
+ ros2 launch nanosaur_perception perception.launch.py
+
 # Deploy the image with the launch package
 ./scripts/docker_deploy.sh \
     --base_image_key $BASE_IMAGE_KEY \
