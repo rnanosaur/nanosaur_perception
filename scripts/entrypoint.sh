@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright (C) 2025, Raffaello Bonghi <raffaello@rnext.it>
 # All rights reserved
 # Redistribution and use in source and binary forms, with or without
@@ -10,7 +11,7 @@
 # 3. Neither the name of the copyright holder nor the names of its 
 #    contributors may be used to endorse or promote products derived 
 #    from this software without specific prior written permission.
-#
+# 
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
 # CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, 
 # BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
@@ -23,40 +24,20 @@
 # OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, 
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-# https://nvidia-isaac-ros.github.io/concepts/docker_devenv/index.html#development-environment
 
-ARG BASE_IMAGE
-FROM ${BASE_IMAGE}
+# Source ROS workspace if exists
+if [[ ! -z "${ROS_WS}" ]]; then
+    source ${ROS_WS}/install/setup.bash
+    echo "ROS workspace sourced: ${ROS_WS}"
+fi
 
-ARG WORKSPACE_DIR=/nanosaur_ws
-
-# Copy the repository
-COPY ./src ${WORKSPACE_DIR}/src
-# Copy scripts
-RUN cp ${WORKSPACE_DIR}/src/nanosaur_perception/scripts/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-# Set the working directory
-WORKDIR ${WORKSPACE_DIR}
-
-# Install dependencies
-RUN sudo apt-get update && \
-    pip3 install -U jetson-stats && \
-    rosdep update && \
-    rosdep install --from-paths src --ignore-src -r -y&& \
-    rm -rf /var/lib/apt/lists/*
-
-# Compile the workspace
-RUN source ${ROS_ROOT:?}/setup.bash && colcon build && rm -rf build src log
-
-# https://docs.docker.com/engine/reference/builder/#stopsignal
-# https://hynek.me/articles/docker-signals/
-STOPSIGNAL SIGINT
-
-# Set the ROS workspace environment variables
-ENV ROS_WS=${WORKSPACE_DIR}
-
-# Set the entrypoint
-ENTRYPOINT ["/entrypoint.sh"]
-
-# CMD ["ros2", "launch", "nanosaur_perception", "perception.launch.py"]
+# Source Isaac SDK workspace if exists
+if [ "$1" == "bash" ]; then
+    shift
+    exec bash "$@"
+elif [[ ! -z "${PERCEPTION_ARGS}" ]]; then
+    echo "Starting perception with arguments: ${PERCEPTION_ARGS}"
+    exec ros2 launch ${PERCEPTION_PACKAGE:-nanosaur_perception} ${PERCEPTION_LAUNCH_FILE:-perception.launch.py} ${PERCEPTION_ARGS}
+else
+    exec ros2 launch ${PERCEPTION_PACKAGE:-nanosaur_perception} ${PERCEPTION_LAUNCH_FILE:-perception.launch.py} "$@"
+fi

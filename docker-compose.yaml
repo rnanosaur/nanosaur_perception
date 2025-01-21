@@ -1,7 +1,7 @@
-version: "3.8"
+
 services:
-  isaac_ros_dev:
-    image: nanosaur:latest
+  nanosaur-perception:
+    image: nanosaur-perception:latest
     volumes:
       - /run/jtop.sock:/run/jtop.sock:ro
       - /tmp/.X11-unix:/tmp/.X11-unix
@@ -10,6 +10,8 @@ services:
       - DISPLAY=${DISPLAY}
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
+      - ROS_DOMAIN_ID=0
+    command: engines:="[vslam, test]"
     runtime: nvidia
     network_mode: host
     ipc: host
