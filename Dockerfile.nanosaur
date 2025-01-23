@@ -59,4 +59,4 @@ ENV ROS_WS=${WORKSPACE_DIR}
 # Set the entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 
-# CMD ["ros2", "launch", "nanosaur_perception", "perception.launch.py"]
+CMD ["ros2", "launch", "nanosaur_perception", "perception.launch.py"]
