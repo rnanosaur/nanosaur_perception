@@ -1,7 +1,7 @@
 
 services:
   nanosaur-perception:
-    image: nanosaur-perception:latest
+    image: nanosaur/perception:latest
     volumes:
       - /run/jtop.sock:/run/jtop.sock:ro
       - /tmp/.X11-unix:/tmp/.X11-unix
