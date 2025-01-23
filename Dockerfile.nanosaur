@@ -47,7 +47,7 @@ RUN sudo apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Compile the workspace
-RUN source ${ROS_ROOT:?}/setup.bash && colcon build && rm -rf build src log
+RUN source ${ROS_ROOT:?}/setup.bash && colcon build --merge-install && rm -rf build src log
 
 # https://docs.docker.com/engine/reference/builder/#stopsignal
 # https://hynek.me/articles/docker-signals/
