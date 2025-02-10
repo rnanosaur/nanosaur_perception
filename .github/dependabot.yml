@@ -1,14 +1,6 @@
 version: 2
 updates:
-- package-ecosystem: docker
-  directory: "/"
+- package-ecosystem: github-actions
+  directory: /
   schedule:
     interval: daily
-  open-pull-requests-limit: 10
-  ignore:
-  - dependency-name: "nvcr.io/nvidia/tritonserver"
-- package-ecosystem: "github-actions"
-  directory: "/"
-  schedule:
-    # Check for updates to GitHub Actions every weekday
-    interval: "daily"
