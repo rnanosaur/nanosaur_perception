@@ -14,17 +14,6 @@ Meet nanosaur:
 * 🐳 nanosaur [Docker Hub](https://hub.docker.com/u/nanosaur)
 * ⁉️ Something wrong? Open an [issue](https://github.com/rnanosaur/nanosaur/issues)
 <!-- INTRO END -->
-<!-- DISTRO START -->
-## Distribution
-
-In this section is show up the current nanosaur version and map of the software version used.
-
-In bold the latest release.
-
-| Version | Branch | ROS | Isaac ROS Release | Isaac ROS Distro | Isaac Sim |
-| --- | --- | --- | --- | --- | --- |
-| **2.0.0** | **nanosaur2** | **humble** | **release-3.2** | **ros2_humble** | **>=4.1, <=4.5** |
-<!-- DISTRO END -->
 <!-- CI START -->
 ## CI & CD
 
@@ -42,6 +31,17 @@ In bold the latest release.
 | 👨‍💻 | [nanosaur/simulation:gazebo](https://hub.docker.com/r/nanosaur/simulation) | x86_64 🖥️ | [![Docker Pulls](https://img.shields.io/docker/pulls/nanosaur/simulation)](https://hub.docker.com/r/nanosaur/simulation) | [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/nanosaur/simulation/gazebo)](https://hub.docker.com/r/nanosaur/simulation) |
 
 <!-- CI END -->
+<!-- DISTRIBUTION START -->
+## Distribution
+
+In this section is show up the current nanosaur version and map of the software version used.
+
+In bold the latest release.
+
+| Version | Branch | ROS | Isaac ROS Release | Isaac ROS Distro | Isaac Sim |
+| --- | --- | --- | --- | --- | --- |
+| **2.0.0** | **nanosaur2** | **humble** | **release-3.2** | **ros2_humble** | **>=4.1, <=4.5** |
+<!-- DISTRIBUTION END -->
 <!-- LICENSE START -->
 ## License
 
