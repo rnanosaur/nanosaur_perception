@@ -24,7 +24,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import os
-
+import re
 from launch import LaunchDescription, LaunchContext
 from launch.actions import DeclareLaunchArgument, OpaqueFunction, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
@@ -33,23 +33,42 @@ from launch.conditions import LaunchConfigurationEquals
 from ament_index_python.packages import get_package_share_directory
 
 
-def launch_perception_setup(context: LaunchContext, support_engines):
+PATTERN_COMMAND = re.compile(r'(\w+):=\s*(\[[^\]]+\]|".+?"|\S+)')
+
+def docker_decoder():
+    print("[WARNING] Docker environment detected.")
+    commands = os.environ['NANOSAUR_COMMANDS']
+    return {
+        match.group(1): match.group(2)
+        for match in PATTERN_COMMAND.finditer(commands)
+    }
+
+def launch_perception_setup(context: LaunchContext, support_robot_name, support_camera_type, support_lidar_type, support_engines, support_use_sim_time):
     pkg_perception = get_package_share_directory('nanosaur_perception')
+    engines = list(set(context.perform_substitution(support_engines).strip('[]').replace(' ', '').split(',')))
+
+    perception_config = {
+        'robot_name': context.perform_substitution(support_robot_name),
+        'camera_type': context.perform_substitution(support_camera_type),
+        'lidar_type': context.perform_substitution(support_lidar_type),
+        'use_sim_time': context.perform_substitution(support_use_sim_time),
+    }
+
+    if 'NANOSAUR_COMMANDS' in os.environ:
+        perception_config |= docker_decoder()
+        if 'engines' in perception_config:
+            engines = re.findall(r'\w+', perception_config['engines'])
 
     # Get engines list from launch file argument 
-    engines = list(set(context.perform_substitution(support_engines).strip('[]').replace(' ', '').split(',')))
     nodes_list = []
     # Start all engines
+    print(f"Engines: {engines}")
     for engine in engines:
         if engine == 'vslam':
             print("Start VSLAM engine")
             vslam_launch = IncludeLaunchDescription(
                 PythonLaunchDescriptionSource([os.path.join(pkg_perception, 'launch', 'vslam.launch.py')]),
-                launch_arguments={
-                    'robot_name': LaunchConfiguration('robot_name'),
-                    'camera_type': LaunchConfiguration('camera_type'),
-                    'lidar_type': LaunchConfiguration('lidar_type'),
-                    }.items(),
+                launch_arguments=perception_config.items(),
             )
             nodes_list += [vslam_launch]
         else:
@@ -65,7 +84,7 @@ def generate_launch_description():
     lidar_type = LaunchConfiguration('lidar_type')
     engines = LaunchConfiguration('engines')
 
-    nanosaur_cmd = DeclareLaunchArgument(
+    robot_name_cmd = DeclareLaunchArgument(
         name='robot_name',
         default_value='nanosaur',
         description='robot name (namespace). If you are working with multiple robot you can change this parameter.')
@@ -93,11 +112,11 @@ def generate_launch_description():
 
     # Define LaunchDescription variable and return it
     ld = LaunchDescription()
-    ld.add_action(nanosaur_cmd)
+    ld.add_action(robot_name_cmd)
     ld.add_action(declare_camera_type_cmd)
     ld.add_action(declare_lidar_type_cmd)
     ld.add_action(declare_engines_cmd)
     ld.add_action(use_sim_time_cmd)
-    ld.add_action(OpaqueFunction(function=launch_perception_setup, args=[engines]))
+    ld.add_action(OpaqueFunction(function=launch_perception_setup, args=[robot_name, camera_type, lidar_type, engines, use_sim_time]))
 
     return ld

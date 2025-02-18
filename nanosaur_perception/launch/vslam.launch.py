@@ -39,7 +39,7 @@ def generate_launch_description():
     lidar_type = LaunchConfiguration('lidar_type')
 
     nanosaur_cmd = DeclareLaunchArgument(
-        name='namespace',
+        name='robot_name',
         default_value='nanosaur',
         description='nanosaur namespace name. If you are working with multiple robot you can change this namespace.')
 
